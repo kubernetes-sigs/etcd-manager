@@ -22,4 +22,4 @@ if [[ ! "${VERSION}" =~ ^([0-9]+[.][0-9]+)[.]([0-9]+)(-(alpha|beta)[.]([0-9]+))?
   exit 1
 fi
 
-echo "${VERSION}" > etcd-manager/version.txt
+echo "${VERSION}" > version.txt

@@ -1,5 +1,5 @@
 owner: kubernetes-sigs
-repo: etcdadm
+repo: etcd-manager
 assets:
 - source: dist/etcd-manager-ctl-windows-amd64
   githubName: etcd-manager-ctl-windows-amd64

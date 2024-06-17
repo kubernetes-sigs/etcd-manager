@@ -21,10 +21,10 @@ if [[ ! "${VERSION}" =~ ^([0-9]+[.][0-9]+)[.]([0-9]+)(-(alpha|beta)[.]([0-9]+))?
   exit 1
 fi
 
-if [ "$(git tag -l "etcd-manager/v${VERSION}")" ]; then
-  echo "Tag etcd-manager/v${VERSION} already exists"
+if [ "$(git tag -l "v${VERSION}")" ]; then
+  echo "Tag v${VERSION} already exists"
   exit 0
 fi
 
-git tag -a -m "Release ${VERSION}" "etcd-manager/v${VERSION}"
-git push origin "etcd-manager/v${VERSION}"
+git tag -a -m "Release ${VERSION}" "v${VERSION}"
+git push origin "v${VERSION}"
