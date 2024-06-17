@@ -6,7 +6,7 @@ go_library(
         "custom_error.pb.go",
         "error.pb.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/googleapis/gax-go/v2/apierror/internal/proto",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/googleapis/gax-go/v2/apierror/internal/proto",
     importpath = "github.com/googleapis/gax-go/v2/apierror/internal/proto",
     visibility = ["//vendor/github.com/googleapis/gax-go/v2/apierror:__subpackages__"],
     deps = [

@@ -7,7 +7,7 @@ go_library(
         "requests.go",
         "urls.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/gophercloud/gophercloud/openstack/identity/v3/extensions/ec2tokens",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/gophercloud/gophercloud/openstack/identity/v3/extensions/ec2tokens",
     importpath = "github.com/gophercloud/gophercloud/openstack/identity/v3/extensions/ec2tokens",
     visibility = ["//visibility:public"],
     deps = [

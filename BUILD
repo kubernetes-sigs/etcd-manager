@@ -5,7 +5,7 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 gazelle(
     name = "gazelle",
     external = "vendored",
-    prefix = "sigs.k8s.io/etcdadm/etcd-manager",
+    prefix = "sigs.k8s.io/etcd-manager",
 )
 
 load("//images:etcd.bzl", "supported_etcd_arch_and_version")

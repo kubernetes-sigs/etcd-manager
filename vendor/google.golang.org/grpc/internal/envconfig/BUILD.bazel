@@ -7,7 +7,7 @@ go_library(
         "observability.go",
         "xds.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/internal/envconfig",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/internal/envconfig",
     importpath = "google.golang.org/grpc/internal/envconfig",
     visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
 )

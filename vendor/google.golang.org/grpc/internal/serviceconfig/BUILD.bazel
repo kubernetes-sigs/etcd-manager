@@ -6,7 +6,7 @@ go_library(
         "duration.go",
         "serviceconfig.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/internal/serviceconfig",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/internal/serviceconfig",
     importpath = "google.golang.org/grpc/internal/serviceconfig",
     visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
     deps = [

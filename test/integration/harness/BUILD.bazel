@@ -7,7 +7,7 @@ go_library(
         "etcd.go",
         "node.go",
     ],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/test/integration/harness",
+    importpath = "sigs.k8s.io/etcd-manager/test/integration/harness",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apis/etcd",

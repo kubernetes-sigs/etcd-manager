@@ -13,7 +13,7 @@ go_library(
         "trace.go",
         "wrapped_body.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opencensus.io/plugin/ochttp",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opencensus.io/plugin/ochttp",
     importpath = "go.opencensus.io/plugin/ochttp",
     visibility = ["//visibility:public"],
     deps = [

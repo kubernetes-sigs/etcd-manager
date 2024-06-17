@@ -25,7 +25,7 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/kops/util/pkg/vfs"
 
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/privateapi/discovery"
+	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 )
 
 // VFSDiscovery implements discovery.Interface using a vfs.Path

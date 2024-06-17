@@ -6,7 +6,7 @@ go_library(
         "restjson.go",
         "unmarshal_error.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/restjson",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/restjson",
     importpath = "github.com/aws/aws-sdk-go/private/protocol/restjson",
     visibility = ["//visibility:public"],
     deps = [

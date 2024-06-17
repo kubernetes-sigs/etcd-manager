@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "anypb",
     srcs = ["any.pb.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/types/known/anypb",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/types/known/anypb",
     importpath = "google.golang.org/protobuf/types/known/anypb",
     visibility = ["//visibility:public"],
     deps = [

@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/backup"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdclient"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/backup"
+	"sigs.k8s.io/etcd-manager/pkg/etcdclient"
 )
 
 // DoBackup performs a backup of etcd v2 or v3

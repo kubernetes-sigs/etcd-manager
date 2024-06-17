@@ -19,7 +19,7 @@ go_library(
         "transport.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/scaleway/scaleway-sdk-go/scw",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/scaleway/scaleway-sdk-go/scw",
     importpath = "github.com/scaleway/scaleway-sdk-go/scw",
     visibility = ["//visibility:public"],
     deps = [

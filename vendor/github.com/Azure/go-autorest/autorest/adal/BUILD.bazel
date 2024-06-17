@@ -12,7 +12,7 @@ go_library(
         "token_legacy.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/adal",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/adal",
     importpath = "github.com/Azure/go-autorest/autorest/adal",
     visibility = ["//visibility:public"],
     deps = [

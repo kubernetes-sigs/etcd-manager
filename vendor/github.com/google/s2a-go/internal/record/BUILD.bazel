@@ -6,7 +6,7 @@ go_library(
         "record.go",
         "ticketsender.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/google/s2a-go/internal/record",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/google/s2a-go/internal/record",
     importpath = "github.com/google/s2a-go/internal/record",
     visibility = ["//vendor/github.com/google/s2a-go:__subpackages__"],
     deps = [

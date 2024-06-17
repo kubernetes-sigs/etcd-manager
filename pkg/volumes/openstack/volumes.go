@@ -36,7 +36,7 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
 	utilexec "k8s.io/utils/exec"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 const (

@@ -23,7 +23,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 func TestFindVolumes(t *testing.T) {

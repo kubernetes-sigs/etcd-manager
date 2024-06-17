@@ -27,11 +27,11 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/backup"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdclient"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdversions"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/pki"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/backup"
+	"sigs.k8s.io/etcd-manager/pkg/etcdclient"
+	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
+	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
 // DoRestore restores a backup from the backup store

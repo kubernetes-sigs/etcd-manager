@@ -10,7 +10,7 @@ go_library(
         "urls.go",
         "urlsmap.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.etcd.io/etcd/client/pkg/v3/types",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.etcd.io/etcd/client/pkg/v3/types",
     importpath = "go.etcd.io/etcd/client/pkg/v3/types",
     visibility = ["//visibility:public"],
 )

@@ -6,7 +6,7 @@ go_library(
         "client.go",
         "roundtripper.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/hashicorp/go-retryablehttp",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/hashicorp/go-retryablehttp",
     importpath = "github.com/hashicorp/go-retryablehttp",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/hashicorp/go-cleanhttp"],

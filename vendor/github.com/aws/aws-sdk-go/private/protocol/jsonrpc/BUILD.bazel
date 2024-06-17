@@ -6,7 +6,7 @@ go_library(
         "jsonrpc.go",
         "unmarshal_error.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
     importpath = "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
     visibility = ["//visibility:public"],
     deps = [

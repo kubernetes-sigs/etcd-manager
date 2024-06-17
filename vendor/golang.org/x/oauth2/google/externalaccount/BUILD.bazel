@@ -11,7 +11,7 @@ go_library(
         "programmaticrefreshcredsource.go",
         "urlcredsource.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/golang.org/x/oauth2/google/externalaccount",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/golang.org/x/oauth2/google/externalaccount",
     importpath = "golang.org/x/oauth2/google/externalaccount",
     visibility = ["//visibility:public"],
     deps = [

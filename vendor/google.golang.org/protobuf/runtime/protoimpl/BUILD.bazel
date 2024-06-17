@@ -6,7 +6,7 @@ go_library(
         "impl.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/runtime/protoimpl",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/runtime/protoimpl",
     importpath = "google.golang.org/protobuf/runtime/protoimpl",
     visibility = ["//visibility:public"],
     deps = [

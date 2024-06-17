@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "errdetails",
     srcs = ["error_details.pb.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/genproto/googleapis/rpc/errdetails",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/genproto/googleapis/rpc/errdetails",
     importpath = "google.golang.org/genproto/googleapis/rpc/errdetails",
     visibility = ["//visibility:public"],
     deps = [

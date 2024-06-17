@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "internal",
     srcs = ["s2av2.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/google/s2a-go/internal/v2",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/google/s2a-go/internal/v2",
     importpath = "github.com/google/s2a-go/internal/v2",
     visibility = ["//vendor/github.com/google/s2a-go:__subpackages__"],
     deps = [

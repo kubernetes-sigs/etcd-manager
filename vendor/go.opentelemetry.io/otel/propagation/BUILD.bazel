@@ -8,7 +8,7 @@ go_library(
         "propagation.go",
         "trace_context.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/propagation",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/propagation",
     importpath = "go.opentelemetry.io/otel/propagation",
     visibility = ["//visibility:public"],
     deps = [

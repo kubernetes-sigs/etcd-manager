@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "resolver",
     srcs = ["resolver.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.etcd.io/etcd/client/v3/internal/resolver",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.etcd.io/etcd/client/v3/internal/resolver",
     importpath = "go.etcd.io/etcd/client/v3/internal/resolver",
     visibility = ["//vendor/go.etcd.io/etcd/client/v3:__subpackages__"],
     deps = [

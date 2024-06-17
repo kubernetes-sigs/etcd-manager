@@ -25,7 +25,7 @@ go_library(
         "ssh_key.go",
         "volume.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/hetznercloud/hcloud-go/hcloud/schema",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/hetznercloud/hcloud-go/hcloud/schema",
     importpath = "github.com/hetznercloud/hcloud-go/hcloud/schema",
     visibility = ["//visibility:public"],
 )

@@ -12,7 +12,7 @@ go_library(
         "syncfloat64.go",
         "syncint64.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/metric",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/metric",
     importpath = "go.opentelemetry.io/otel/metric",
     visibility = ["//visibility:public"],
     deps = [

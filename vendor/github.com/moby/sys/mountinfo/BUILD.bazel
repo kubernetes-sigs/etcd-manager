@@ -15,7 +15,7 @@ go_library(
         "mountinfo_unsupported.go",
         "mountinfo_windows.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/moby/sys/mountinfo",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/moby/sys/mountinfo",
     importpath = "github.com/moby/sys/mountinfo",
     visibility = ["//visibility:public"],
     deps = select({

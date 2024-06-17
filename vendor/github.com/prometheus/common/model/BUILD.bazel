@@ -19,7 +19,7 @@ go_library(
         "value_histogram.go",
         "value_type.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/prometheus/common/model",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/prometheus/common/model",
     importpath = "github.com/prometheus/common/model",
     visibility = ["//visibility:public"],
     deps = [

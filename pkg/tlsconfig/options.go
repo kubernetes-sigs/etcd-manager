@@ -21,7 +21,7 @@ import (
 	"crypto/x509"
 
 	certutil "k8s.io/client-go/util/cert"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/pki"
+	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
 func GRPCClientConfig(keypairs *pki.Keypairs, myPeerID string) (*tls.Config, error) {

@@ -15,7 +15,7 @@ go_library(
         "resizefs_linux.go",
         "resizefs_unsupported.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/k8s.io/mount-utils",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/k8s.io/mount-utils",
     importpath = "k8s.io/mount-utils",
     visibility = ["//visibility:public"],
     deps = [

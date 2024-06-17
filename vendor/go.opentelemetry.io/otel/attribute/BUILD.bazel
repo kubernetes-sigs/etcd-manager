@@ -13,7 +13,7 @@ go_library(
         "type_string.go",
         "value.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/attribute",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/attribute",
     importpath = "go.opentelemetry.io/otel/attribute",
     visibility = ["//visibility:public"],
     deps = [

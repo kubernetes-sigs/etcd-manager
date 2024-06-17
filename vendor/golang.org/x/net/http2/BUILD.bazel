@@ -23,7 +23,7 @@ go_library(
         "writesched_random.go",
         "writesched_roundrobin.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/golang.org/x/net/http2",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/golang.org/x/net/http2",
     importpath = "golang.org/x/net/http2",
     visibility = ["//visibility:public"],
     deps = [

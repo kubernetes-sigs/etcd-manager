@@ -1,4 +1,4 @@
-module sigs.k8s.io/etcdadm/etcd-manager
+module sigs.k8s.io/etcd-manager
 
 go 1.22
 

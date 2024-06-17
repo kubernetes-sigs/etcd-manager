@@ -10,7 +10,7 @@ go_library(
         "editions.go",
         "proto.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/reflect/protodesc",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/reflect/protodesc",
     importpath = "google.golang.org/protobuf/reflect/protodesc",
     visibility = ["//visibility:public"],
     deps = [

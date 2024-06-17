@@ -11,7 +11,7 @@ go_library(
         "resource.pb.go",
         "routing.pb.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/genproto/googleapis/api/annotations",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/genproto/googleapis/api/annotations",
     importpath = "google.golang.org/genproto/googleapis/api/annotations",
     visibility = ["//visibility:public"],
     deps = [

@@ -23,9 +23,9 @@ import (
 	"fmt"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdclient"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/privateapi"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/etcdclient"
+	"sigs.k8s.io/etcd-manager/pkg/privateapi"
 )
 
 type EtcdMemberId string

@@ -8,7 +8,7 @@ go_library(
         "fixup_go118.go",
         "fixup_go119.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/k8s.io/utils/exec",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/k8s.io/utils/exec",
     importpath = "k8s.io/utils/exec",
     visibility = ["//visibility:public"],
 )

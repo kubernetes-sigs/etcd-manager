@@ -33,7 +33,7 @@ go_library(
         "testing.go",
         "volume.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/hetznercloud/hcloud-go/hcloud",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/hetznercloud/hcloud-go/hcloud",
     importpath = "github.com/hetznercloud/hcloud-go/hcloud",
     visibility = ["//visibility:public"],
     deps = [

@@ -6,7 +6,7 @@ go_library(
         "codes.go",
         "doc.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/codes",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/codes",
     importpath = "go.opentelemetry.io/otel/codes",
     visibility = ["//visibility:public"],
 )

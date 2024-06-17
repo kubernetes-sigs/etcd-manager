@@ -7,7 +7,7 @@ go_library(
         "journal_unix.go",
         "journal_windows.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/coreos/go-systemd/v22/journal",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/coreos/go-systemd/v22/journal",
     importpath = "github.com/coreos/go-systemd/v22/journal",
     visibility = ["//visibility:public"],
 )

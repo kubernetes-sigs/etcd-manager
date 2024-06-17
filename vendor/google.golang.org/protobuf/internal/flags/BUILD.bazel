@@ -6,7 +6,7 @@ go_library(
         "flags.go",
         "proto_legacy_disable.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/internal/flags",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/internal/flags",
     importpath = "google.golang.org/protobuf/internal/flags",
     visibility = ["//vendor/google.golang.org/protobuf:__subpackages__"],
 )

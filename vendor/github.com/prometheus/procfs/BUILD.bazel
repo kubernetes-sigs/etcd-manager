@@ -67,7 +67,7 @@ go_library(
         "vm.go",
         "zoneinfo.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/prometheus/procfs",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/prometheus/procfs",
     importpath = "github.com/prometheus/procfs",
     visibility = ["//visibility:public"],
     deps = [

@@ -8,7 +8,7 @@ go_library(
         "errors.go",
         "service.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/service/ssooidc",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/service/ssooidc",
     importpath = "github.com/aws/aws-sdk-go/service/ssooidc",
     visibility = ["//visibility:public"],
     deps = [

@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/ioutils"
+	"sigs.k8s.io/etcd-manager/pkg/ioutils"
 )
 
 // PersistentPeerId reads the id from the base directory, creating and saving it if it does not exists

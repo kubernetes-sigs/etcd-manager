@@ -4,7 +4,7 @@ go_library(
     name = "editiondefaults",
     srcs = ["defaults.go"],
     embedsrcs = ["editions_defaults.binpb"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/internal/editiondefaults",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/internal/editiondefaults",
     importpath = "google.golang.org/protobuf/internal/editiondefaults",
     visibility = ["//vendor/google.golang.org/protobuf:__subpackages__"],
 )

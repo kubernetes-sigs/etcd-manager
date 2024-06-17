@@ -6,7 +6,7 @@ go_library(
         "endpoint_errors.go",
         "resource_request.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/s3shared",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/s3shared",
     importpath = "github.com/aws/aws-sdk-go/internal/s3shared",
     visibility = ["//vendor/github.com/aws/aws-sdk-go:__subpackages__"],
     deps = [

@@ -8,7 +8,7 @@ go_library(
         "token.go",
         "transport.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/golang.org/x/oauth2/internal",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/golang.org/x/oauth2/internal",
     importpath = "golang.org/x/oauth2/internal",
     visibility = ["//vendor/golang.org/x/oauth2:__subpackages__"],
 )

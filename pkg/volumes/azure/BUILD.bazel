@@ -8,7 +8,7 @@ go_library(
         "testing.go",
         "volumes.go",
     ],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes/azure",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/volumes/azure",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/privateapi/discovery",

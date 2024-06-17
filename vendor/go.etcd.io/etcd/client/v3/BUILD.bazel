@@ -24,7 +24,7 @@ go_library(
         "utils.go",
         "watch.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.etcd.io/etcd/client/v3",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.etcd.io/etcd/client/v3",
     importpath = "go.etcd.io/etcd/client/v3",
     visibility = ["//visibility:public"],
     deps = [

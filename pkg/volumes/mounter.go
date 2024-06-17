@@ -26,7 +26,7 @@ import (
 	"k8s.io/mount-utils"
 	utilexec "k8s.io/utils/exec"
 	"k8s.io/utils/nsenter"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/hostmount"
+	"sigs.k8s.io/etcd-manager/pkg/hostmount"
 )
 
 type VolumeMountController struct {

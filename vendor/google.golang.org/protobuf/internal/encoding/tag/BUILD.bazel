@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "tag",
     srcs = ["tag.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/internal/encoding/tag",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/internal/encoding/tag",
     importpath = "google.golang.org/protobuf/internal/encoding/tag",
     visibility = ["//vendor/google.golang.org/protobuf:__subpackages__"],
     deps = [

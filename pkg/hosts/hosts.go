@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/dns"
+	"sigs.k8s.io/etcd-manager/pkg/dns"
 )
 
 const GUARD_BEGIN_TEMPLATE = "# Begin host entries managed by __key__ - do not edit"

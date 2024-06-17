@@ -27,7 +27,7 @@ import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/hetznercloud/hcloud-go/hcloud/metadata"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 const (

@@ -10,7 +10,7 @@ go_library(
         "util.go",
         "volumes.go",
     ],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes/openstack",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/volumes/openstack",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/privateapi/discovery",

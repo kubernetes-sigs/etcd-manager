@@ -8,7 +8,7 @@ go_library(
         "chachapoly.go",
         "common.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/google/s2a-go/internal/record/internal/aeadcrypter",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/google/s2a-go/internal/record/internal/aeadcrypter",
     importpath = "github.com/google/s2a-go/internal/record/internal/aeadcrypter",
     visibility = ["//vendor/github.com/google/s2a-go:__subpackages__"],
     deps = ["//vendor/golang.org/x/crypto/chacha20poly1305"],

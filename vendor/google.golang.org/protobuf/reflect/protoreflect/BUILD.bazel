@@ -14,7 +14,7 @@ go_library(
         "value_unsafe_go120.go",
         "value_unsafe_go121.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/reflect/protoreflect",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/reflect/protoreflect",
     importpath = "google.golang.org/protobuf/reflect/protoreflect",
     visibility = ["//visibility:public"],
     deps = [

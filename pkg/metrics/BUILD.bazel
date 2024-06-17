@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "metrics",
     srcs = ["metrics.go"],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/metrics",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/metrics",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/volumes/openstack",

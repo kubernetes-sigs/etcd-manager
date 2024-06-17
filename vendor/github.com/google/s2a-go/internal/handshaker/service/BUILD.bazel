@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "service",
     srcs = ["service.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/google/s2a-go/internal/handshaker/service",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/google/s2a-go/internal/handshaker/service",
     importpath = "github.com/google/s2a-go/internal/handshaker/service",
     visibility = ["//vendor/github.com/google/s2a-go:__subpackages__"],
     deps = [

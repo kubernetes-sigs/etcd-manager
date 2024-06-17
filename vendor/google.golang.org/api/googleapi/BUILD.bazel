@@ -6,7 +6,7 @@ go_library(
         "googleapi.go",
         "types.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/api/googleapi",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/api/googleapi",
     importpath = "google.golang.org/api/googleapi",
     visibility = ["//visibility:public"],
     deps = ["//vendor/google.golang.org/api/internal/third_party/uritemplates"],

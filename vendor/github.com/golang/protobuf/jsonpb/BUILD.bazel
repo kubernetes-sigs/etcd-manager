@@ -7,7 +7,7 @@ go_library(
         "encode.go",
         "json.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/golang/protobuf/jsonpb",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/golang/protobuf/jsonpb",
     importpath = "github.com/golang/protobuf/jsonpb",
     visibility = ["//visibility:public"],
     deps = [

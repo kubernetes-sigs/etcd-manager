@@ -26,7 +26,7 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 // ExternalVolumes defines the aws volume implementation

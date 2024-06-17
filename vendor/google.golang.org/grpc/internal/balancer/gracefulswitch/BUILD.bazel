@@ -6,7 +6,7 @@ go_library(
         "config.go",
         "gracefulswitch.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/internal/balancer/gracefulswitch",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/internal/balancer/gracefulswitch",
     importpath = "google.golang.org/grpc/internal/balancer/gracefulswitch",
     visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
     deps = [

@@ -11,7 +11,7 @@ go_library(
         "type_string.go",
         "unit.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opencensus.io/metric/metricdata",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opencensus.io/metric/metricdata",
     importpath = "go.opencensus.io/metric/metricdata",
     visibility = ["//visibility:public"],
     deps = ["//vendor/go.opencensus.io/resource"],

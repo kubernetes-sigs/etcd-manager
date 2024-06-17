@@ -6,7 +6,7 @@ go_library(
         "balancer.go",
         "conn_state_evaluator.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/balancer",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/balancer",
     importpath = "google.golang.org/grpc/balancer",
     visibility = ["//visibility:public"],
     deps = [

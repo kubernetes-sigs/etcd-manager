@@ -20,7 +20,7 @@ go_library(
         "utility_legacy.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/go-autorest/autorest",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/go-autorest/autorest",
     importpath = "github.com/Azure/go-autorest/autorest",
     visibility = ["//visibility:public"],
     deps = [

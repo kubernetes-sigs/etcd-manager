@@ -11,7 +11,7 @@ go_library(
         "trace.go",
         "tracestate.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/trace",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/trace",
     importpath = "go.opentelemetry.io/otel/trace",
     visibility = ["//visibility:public"],
     deps = [

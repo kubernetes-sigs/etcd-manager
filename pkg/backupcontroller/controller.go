@@ -23,11 +23,11 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/backup"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/contextutil"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdclient"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/backup"
+	"sigs.k8s.io/etcd-manager/pkg/contextutil"
+	"sigs.k8s.io/etcd-manager/pkg/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/etcdclient"
 )
 
 const loopInterval = time.Minute

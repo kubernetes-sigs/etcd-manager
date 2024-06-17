@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/backup"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdversions"
-	"sigs.k8s.io/etcdadm/etcd-manager/test/integration/harness"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/backup"
+	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
+	"sigs.k8s.io/etcd-manager/test/integration/harness"
 )
 
 func TestBackupRestore(t *testing.T) {

@@ -8,7 +8,7 @@ go_library(
         "encode.go",
         "well_known_types.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/protobuf/encoding/protojson",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/protobuf/encoding/protojson",
     importpath = "google.golang.org/protobuf/encoding/protojson",
     visibility = ["//visibility:public"],
     deps = [

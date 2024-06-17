@@ -14,7 +14,7 @@ go_library(
         "response.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/azure-pipeline-go/pipeline",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-pipeline-go/pipeline",
     importpath = "github.com/Azure/azure-pipeline-go/pipeline",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/mattn/go-ieproxy"],

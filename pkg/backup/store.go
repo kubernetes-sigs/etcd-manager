@@ -18,7 +18,7 @@ package backup
 
 import (
 	"k8s.io/kops/util/pkg/vfs"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 )
 
 const MetaFilename = "_etcd_backup.meta"

@@ -15,7 +15,7 @@ go_library(
         "proxy.go",
         "transport.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/internal/transport",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/internal/transport",
     importpath = "google.golang.org/grpc/internal/transport",
     visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
     deps = [

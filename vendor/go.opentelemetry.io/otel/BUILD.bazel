@@ -12,7 +12,7 @@ go_library(
         "trace.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel",
     importpath = "go.opentelemetry.io/otel",
     visibility = ["//visibility:public"],
     deps = [

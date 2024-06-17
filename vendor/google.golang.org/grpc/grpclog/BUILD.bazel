@@ -8,7 +8,7 @@ go_library(
         "logger.go",
         "loggerv2.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/grpclog",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/grpclog",
     importpath = "google.golang.org/grpc/grpclog",
     visibility = ["//visibility:public"],
     deps = ["//vendor/google.golang.org/grpc/internal/grpclog"],

@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/privateapi/discovery"
+	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 )
 
 func newTestInterface(vmID, ip string) network.Interface {

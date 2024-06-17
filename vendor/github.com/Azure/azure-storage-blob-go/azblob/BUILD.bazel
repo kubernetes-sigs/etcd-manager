@@ -52,7 +52,7 @@ go_library(
         "zz_generated_version.go",
         "zz_response_helpers.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/azure-storage-blob-go/azblob",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-storage-blob-go/azblob",
     importpath = "github.com/Azure/azure-storage-blob-go/azblob",
     visibility = ["//visibility:public"],
     deps = [

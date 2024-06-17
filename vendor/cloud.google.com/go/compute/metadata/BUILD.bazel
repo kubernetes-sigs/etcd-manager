@@ -7,7 +7,7 @@ go_library(
         "retry.go",
         "retry_linux.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/cloud.google.com/go/compute/metadata",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/cloud.google.com/go/compute/metadata",
     importpath = "cloud.google.com/go/compute/metadata",
     visibility = ["//visibility:public"],
 )

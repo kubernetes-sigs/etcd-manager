@@ -7,7 +7,7 @@ go_library(
         "s2a_options.go",
         "s2a_utils.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/google/s2a-go",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/google/s2a-go",
     importpath = "github.com/google/s2a-go",
     visibility = ["//visibility:public"],
     deps = [

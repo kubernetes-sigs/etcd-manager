@@ -112,7 +112,7 @@ go_library(
         "watchers.go",
         "webapplicationfirewallpolicies.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network",
     importpath = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network",
     visibility = ["//visibility:public"],
     deps = [

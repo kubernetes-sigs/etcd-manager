@@ -18,7 +18,7 @@ go_library(
         "trace_go11.go",
         "trace_nongo11.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opencensus.io/trace",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opencensus.io/trace",
     importpath = "go.opencensus.io/trace",
     visibility = ["//visibility:public"],
     deps = [

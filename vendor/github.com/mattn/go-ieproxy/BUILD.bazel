@@ -15,7 +15,7 @@ go_library(
         "utils.go",
         "winhttp_data_windows.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/mattn/go-ieproxy",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/mattn/go-ieproxy",
     importpath = "github.com/mattn/go-ieproxy",
     visibility = ["//visibility:public"],
     deps = select({

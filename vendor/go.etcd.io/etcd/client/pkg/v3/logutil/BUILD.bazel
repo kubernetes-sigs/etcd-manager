@@ -8,7 +8,7 @@ go_library(
         "zap.go",
         "zap_journal.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.etcd.io/etcd/client/pkg/v3/logutil",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.etcd.io/etcd/client/pkg/v3/logutil",
     importpath = "go.etcd.io/etcd/client/pkg/v3/logutil",
     visibility = ["//visibility:public"],
     deps = [

@@ -18,7 +18,7 @@ go_library(
         "klogr_slog.go",
         "safeptr.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/k8s.io/klog/v2",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/k8s.io/klog/v2",
     importpath = "k8s.io/klog/v2",
     visibility = ["//visibility:public"],
     deps = [

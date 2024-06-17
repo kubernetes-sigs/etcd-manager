@@ -8,7 +8,7 @@ go_library(
         "shared_config_resolve_home.go",
         "shared_config_resolve_home_go1.12.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/shareddefaults",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/shareddefaults",
     importpath = "github.com/aws/aws-sdk-go/internal/shareddefaults",
     visibility = ["//vendor/github.com/aws/aws-sdk-go:__subpackages__"],
 )

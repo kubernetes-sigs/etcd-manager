@@ -7,7 +7,7 @@ go_library(
         "localnode.go",
         "member.go",
     ],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdclient",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/etcdclient",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/go.etcd.io/etcd/api/v3/version",

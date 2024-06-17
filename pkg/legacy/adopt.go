@@ -24,9 +24,9 @@ import (
 	"strings"
 
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/commands"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/etcdversions"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/commands"
+	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
 	"sigs.k8s.io/yaml"
 )
 

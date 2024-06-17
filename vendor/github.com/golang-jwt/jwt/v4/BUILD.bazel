@@ -22,7 +22,7 @@ go_library(
         "token.go",
         "types.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/golang-jwt/jwt/v4",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/golang-jwt/jwt/v4",
     importpath = "github.com/golang-jwt/jwt/v4",
     visibility = ["//visibility:public"],
 )

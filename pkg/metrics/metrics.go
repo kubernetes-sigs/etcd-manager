@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes/openstack"
+	"sigs.k8s.io/etcd-manager/pkg/volumes/openstack"
 )
 
 func RegisterMetrics(port int, provider string) {

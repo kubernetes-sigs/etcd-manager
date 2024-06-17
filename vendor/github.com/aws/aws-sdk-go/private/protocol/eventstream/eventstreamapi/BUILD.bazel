@@ -12,7 +12,7 @@ go_library(
         "transport_go1.17.go",
         "writer.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi",
     importpath = "github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi",
     visibility = ["//visibility:public"],
     deps = [

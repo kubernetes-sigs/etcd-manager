@@ -13,7 +13,7 @@ go_library(
         "worker.go",
         "worker_commands.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opencensus.io/stats/view",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opencensus.io/stats/view",
     importpath = "go.opencensus.io/stats/view",
     visibility = ["//visibility:public"],
     deps = [

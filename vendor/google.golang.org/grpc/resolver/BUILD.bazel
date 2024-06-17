@@ -6,7 +6,7 @@ go_library(
         "map.go",
         "resolver.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/resolver",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/resolver",
     importpath = "google.golang.org/grpc/resolver",
     visibility = ["//visibility:public"],
     deps = [

@@ -6,7 +6,7 @@ go_library(
         "grpclog.go",
         "prefixLogger.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/grpc/internal/grpclog",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/internal/grpclog",
     importpath = "google.golang.org/grpc/internal/grpclog",
     visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
 )

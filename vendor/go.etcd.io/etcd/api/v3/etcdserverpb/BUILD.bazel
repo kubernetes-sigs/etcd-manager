@@ -8,7 +8,7 @@ go_library(
         "raft_internal_stringer.go",
         "rpc.pb.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.etcd.io/etcd/api/v3/etcdserverpb",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.etcd.io/etcd/api/v3/etcdserverpb",
     importpath = "go.etcd.io/etcd/api/v3/etcdserverpb",
     visibility = ["//visibility:public"],
     deps = [

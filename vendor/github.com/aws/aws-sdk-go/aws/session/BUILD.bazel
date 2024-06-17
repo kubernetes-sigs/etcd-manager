@@ -13,7 +13,7 @@ go_library(
         "session.go",
         "shared_config.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/aws/session",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/aws/session",
     importpath = "github.com/aws/aws-sdk-go/aws/session",
     visibility = ["//visibility:public"],
     deps = [

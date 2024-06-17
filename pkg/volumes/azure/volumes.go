@@ -28,7 +28,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 type clientInterface interface {

@@ -6,7 +6,7 @@ go_library(
         "profile.go",
         "token.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/azure/cli",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/azure/cli",
     importpath = "github.com/Azure/go-autorest/autorest/azure/cli",
     visibility = ["//visibility:public"],
     deps = [

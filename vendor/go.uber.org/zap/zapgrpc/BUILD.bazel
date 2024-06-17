@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "zapgrpc",
     srcs = ["zapgrpc.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.uber.org/zap/zapgrpc",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.uber.org/zap/zapgrpc",
     importpath = "go.uber.org/zap/zapgrpc",
     visibility = ["//visibility:public"],
     deps = [

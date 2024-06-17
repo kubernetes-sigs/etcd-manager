@@ -8,7 +8,7 @@ go_library(
         "outpost_arn.go",
         "s3_object_lambda_arn.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/s3shared/arn",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go/internal/s3shared/arn",
     importpath = "github.com/aws/aws-sdk-go/internal/s3shared/arn",
     visibility = ["//vendor/github.com/aws/aws-sdk-go:__subpackages__"],
     deps = ["//vendor/github.com/aws/aws-sdk-go/aws/arn"],

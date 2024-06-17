@@ -7,7 +7,7 @@ go_library(
         "error_post_go120.go",
         "error_pre_go120.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.uber.org/multierr",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.uber.org/multierr",
     importpath = "go.uber.org/multierr",
     visibility = ["//visibility:public"],
 )

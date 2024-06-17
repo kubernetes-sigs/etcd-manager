@@ -7,7 +7,7 @@ go_library(
         "builder.go",
         "string.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/golang.org/x/crypto/cryptobyte",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/golang.org/x/crypto/cryptobyte",
     importpath = "golang.org/x/crypto/cryptobyte",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/crypto/cryptobyte/asn1"],

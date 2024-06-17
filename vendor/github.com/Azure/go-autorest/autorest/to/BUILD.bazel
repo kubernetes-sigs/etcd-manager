@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "to",
     srcs = ["convert.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/to",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/go-autorest/autorest/to",
     importpath = "github.com/Azure/go-autorest/autorest/to",
     visibility = ["//visibility:public"],
 )

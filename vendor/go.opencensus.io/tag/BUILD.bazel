@@ -13,7 +13,7 @@ go_library(
         "profile_not19.go",
         "validate.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opencensus.io/tag",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opencensus.io/tag",
     importpath = "go.opencensus.io/tag",
     visibility = ["//visibility:public"],
 )

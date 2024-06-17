@@ -32,7 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"k8s.io/klog/v2"
 
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/volumes"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 var devices = []string{"/dev/xvdu", "/dev/xvdv", "/dev/xvdx", "/dev/xvdx", "/dev/xvdy", "/dev/xvdz"}

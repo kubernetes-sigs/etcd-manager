@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "externalaccountauthorizeduser",
     srcs = ["externalaccountauthorizeduser.go"],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/golang.org/x/oauth2/google/internal/externalaccountauthorizeduser",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/golang.org/x/oauth2/google/internal/externalaccountauthorizeduser",
     importpath = "golang.org/x/oauth2/google/internal/externalaccountauthorizeduser",
     visibility = ["//vendor/golang.org/x/oauth2/google:__subpackages__"],
     deps = [

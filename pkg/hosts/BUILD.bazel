@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "hosts",
     srcs = ["hosts.go"],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/hosts",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/hosts",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/dns",

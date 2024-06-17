@@ -25,8 +25,8 @@ import (
 
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/klog/v2"
-	protoetcd "sigs.k8s.io/etcdadm/etcd-manager/pkg/apis/etcd"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/pki"
+	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
 func (p *etcdProcess) createKeypairs(peersCA *pki.CA, clientsCA *pki.CA, pkiDir string, me *protoetcd.EtcdNode, peerClientIPs []net.IP) error {

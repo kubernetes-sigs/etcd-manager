@@ -43,7 +43,7 @@ go_library(
         "syscall_fixed.go",
         "syscall_good.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/pkg/sftp",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/pkg/sftp",
     importpath = "github.com/pkg/sftp",
     visibility = ["//visibility:public"],
     deps = [

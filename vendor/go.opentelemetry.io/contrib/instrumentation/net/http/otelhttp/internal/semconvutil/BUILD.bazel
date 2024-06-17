@@ -7,7 +7,7 @@ go_library(
         "httpconv.go",
         "netconv.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/internal/semconvutil",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/internal/semconvutil",
     importpath = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/internal/semconvutil",
     visibility = ["//vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp:__subpackages__"],
     deps = [

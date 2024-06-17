@@ -22,7 +22,7 @@ import (
 	"strconv"
 
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/etcdadm/etcd-manager/pkg/privateapi/discovery"
+	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 )
 
 // HetznerVolumes also allows the discovery of peer nodes

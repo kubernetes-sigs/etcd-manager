@@ -11,7 +11,7 @@ go_library(
         "store.go",
         "utils.go",
     ],
-    importpath = "sigs.k8s.io/etcdadm/etcd-manager/pkg/pki",
+    importpath = "sigs.k8s.io/etcd-manager/pkg/pki",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/k8s.io/client-go/util/cert",

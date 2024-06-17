@@ -10,7 +10,7 @@ go_library(
         "settings.go",
         "version.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/google.golang.org/api/internal",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/api/internal",
     importpath = "google.golang.org/api/internal",
     visibility = ["//vendor/google.golang.org/api:__subpackages__"],
     deps = [

@@ -18,7 +18,7 @@ go_library(
         "permissions.go",
         "response_packets.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/github.com/pkg/sftp/internal/encoding/ssh/filexfer",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/pkg/sftp/internal/encoding/ssh/filexfer",
     importpath = "github.com/pkg/sftp/internal/encoding/ssh/filexfer",
     visibility = ["//vendor/github.com/pkg/sftp:__subpackages__"],
 )

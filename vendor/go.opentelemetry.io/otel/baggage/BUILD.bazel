@@ -7,7 +7,7 @@ go_library(
         "context.go",
         "doc.go",
     ],
-    importmap = "sigs.k8s.io/etcdadm/etcd-manager/vendor/go.opentelemetry.io/otel/baggage",
+    importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/baggage",
     importpath = "go.opentelemetry.io/otel/baggage",
     visibility = ["//visibility:public"],
     deps = ["//vendor/go.opentelemetry.io/otel/internal/baggage"],
