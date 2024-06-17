@@ -21,7 +21,6 @@ jobs:
     - name: Build etcd-manager
       run: |
         ./dev/build-assets.sh $(git describe --always 2>/dev/null)
-      working-directory: ./etcd-manager/
 
   test:
     runs-on: ubuntu-latest
@@ -39,7 +38,6 @@ jobs:
     - name: Test etcd-manager
       run: |
         "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //... -//test/integration/upgradedowngrade:all -//test/integration/backuprestore:all
-      working-directory: ./etcd-manager/
 
   test-upgradedowngrade:
     runs-on: ubuntu-latest
@@ -57,7 +55,6 @@ jobs:
     - name: Test etcd-manager
       run: |
         "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //test/integration/upgradedowngrade:all
-      working-directory: ./etcd-manager/
 
   test-backuprestore:
     runs-on: ubuntu-latest
@@ -75,4 +72,3 @@ jobs:
     - name: Test etcd-manager
       run: |
         "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //test/integration/backuprestore:all
-      working-directory: ./etcd-manager/
