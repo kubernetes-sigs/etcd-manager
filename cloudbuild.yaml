@@ -15,29 +15,28 @@ steps:
   env:
   - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
   - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${COMMIT_SHA}'
+  - 'DOCKER_TAG=${_GIT_TAG}'
 - name: gcr.io/cloud-builders/bazel:5.4.0
   args: ['run', '//images:push-etcd-manager-slim']
   env:
   - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
   - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${COMMIT_SHA}'
+  - 'DOCKER_TAG=${_GIT_TAG}'
 - name: gcr.io/cloud-builders/bazel:5.4.0
   args: ['run', '//images:push-etcd-dump']
   env:
   - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
   - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${COMMIT_SHA}'
+  - 'DOCKER_TAG=${_GIT_TAG}'
 - name: gcr.io/cloud-builders/bazel:5.4.0
   args: ['run', '//images:push-etcd-backup']
   env:
   - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
   - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${COMMIT_SHA}'
+  - 'DOCKER_TAG=${_GIT_TAG}'
 
 timeout: 1800s
 substitutions:
-  _COMMIT_SHA: '12345'
   _DOCKER_REGISTRY: 'us-central1-docker.pkg.dev'
   _DOCKER_IMAGE_PREFIX: 'k8s-infra-staging-images/etcd-manager/'
 options:
