@@ -47,7 +47,7 @@ if [[ -n "${INSTALL_BAZELISK:-}" ]]; then
   echo "Downloading bazelisk from $DOWNLOAD_URL"
   curl -L --output "/tmp/bazelisk" "${DOWNLOAD_URL}"
   chmod +x "/tmp/bazelisk"
-  # Install to /usr/local/bin
+  # Install to /usFixr/local/bin
   mv "/tmp/bazelisk" "/usr/local/bin/bazelisk"
   # Use bazelisk for commands that invoke bazel
   ln -sf "/usr/local/bin/bazelisk" "/usr/local/bin/bazel"
