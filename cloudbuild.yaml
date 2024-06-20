@@ -1,44 +1,20 @@
 steps:
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['version']
-
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['build', '//cmd/...', '//images:etcd-manager', '//images:etcd-manager-slim', '//images:etcd-backup', '//images:etcd-dump']
-  # To build with GCS cache
-  #args: ['build', '--google_default_credentials', '--spawn_strategy=remote', '--genrule_strategy=remote', '--strategy=Javac=remote', '--strategy=Closure=remote', '--remote_http_cache=https://storage.googleapis.com/cache-bucket', '//cmd/...']
-
-#- name: gcr.io/cloud-builders/bazel:5.4.0
-#  args: ['test', '//test/...', '--test_output=streamed', '--local_test_jobs=1']
-
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['run', '//images:push-etcd-manager']
+- name: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
   env:
-  - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
-  - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${_GIT_TAG}'
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['run', '//images:push-etcd-manager-slim']
-  env:
-  - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
-  - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${_GIT_TAG}'
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['run', '//images:push-etcd-dump']
-  env:
-  - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
-  - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${_GIT_TAG}'
-- name: gcr.io/cloud-builders/bazel:5.4.0
-  args: ['run', '//images:push-etcd-backup']
-  env:
-  - 'DOCKER_REGISTRY=${_DOCKER_REGISTRY}'
-  - 'DOCKER_IMAGE_PREFIX=${_DOCKER_IMAGE_PREFIX}'
-  - 'DOCKER_TAG=${_GIT_TAG}'
-
+  - PULL_BASE_REF=$_PULL_BASE_REF
+  # We don't pass version; we want to use our own version tagging from git
+  #- VERSION=$_GIT_TAG
+  - DOCKER_REGISTRY=$_DOCKER_REGISTRY
+  - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
+  - ARTIFACT_LOCATION=$_ARTIFACT_LOCATION
+  - INSTALL_BAZELISK=y
+  entrypoint: dev/push-etcd-manager.sh
 timeout: 1800s
 substitutions:
   _DOCKER_REGISTRY: 'us-central1-docker.pkg.dev'
   _DOCKER_IMAGE_PREFIX: 'k8s-staging-images/etcd-manager/'
+  _GIT_TAG: 'dev'
+  _PULL_BASE_REF: 'dev'
 options:
   machineType: E2_HIGHCPU_8
   substitution_option: ALLOW_LOOSE
