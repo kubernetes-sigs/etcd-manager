@@ -1,7 +1,7 @@
 steps:
 - name: gcr.io/bazel-public/bazel:6.3.2
-  entrypoint: bazel
-  args: ['version']
+  entrypoint: bash
+  args: ['whoami']
 
 - name: gcr.io/bazel-public/bazel:6.3.2
   entrypoint: bazel
