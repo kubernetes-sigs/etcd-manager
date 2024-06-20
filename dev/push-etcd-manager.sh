@@ -25,25 +25,15 @@ if [[ -z "${VERSION:-}" ]]; then
 fi
 
 if [[ -z "${DOCKER_REGISTRY:-}" ]]; then
-  DOCKER_REGISTRY=gcr.io
+  DOCKER_REGISTRY=us-central1-docker.pkg.dev
 fi
 
 if [[ -z "${DOCKER_IMAGE_PREFIX:-}" ]]; then
-  DOCKER_IMAGE_PREFIX=k8s-staging-etcdadm/
-fi
-
-if [[ -z "${ARTIFACT_LOCATION:-}" ]]; then
-  echo "must set ARTIFACT_LOCATION for binary artifacts"
-  exit 1
-fi
-
-# Make sure ARTIFACT_LOCATION ends in a slash
-if [[ "${ARTIFACT_LOCATION}" != */ ]]; then
-  ARTIFACT_LOCATION="${ARTIFACT_LOCATION}/"
+  DOCKER_IMAGE_PREFIX=k8s-staging-images/etcd-manager/
 fi
 
 if [[ -n "${INSTALL_BAZELISK:-}" ]]; then
-  DOWNLOAD_URL="https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64"
+  DOWNLOAD_URL="https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64"
   echo "Downloading bazelisk from $DOWNLOAD_URL"
   curl -L --output "/tmp/bazelisk" "${DOWNLOAD_URL}"
   chmod +x "/tmp/bazelisk"
@@ -55,5 +45,3 @@ fi
 
 # Build and upload etcd-manager images & binaries
 DOCKER_REGISTRY=${DOCKER_REGISTRY} DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX} DOCKER_TAG=${VERSION} make -C etcd-manager push
-./etcd-manager/dev/build-assets.sh ${VERSION}
-gsutil -h "Cache-Control:private, max-age=0, no-transform" -m cp -r -n etcd-manager/dist/ ${ARTIFACT_LOCATION}${VERSION}/etcd-manager/
