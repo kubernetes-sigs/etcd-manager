@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "runtime",
+    srcs = [
+        "pipeline.go",
+        "policy_bearer_token.go",
+        "policy_register_rp.go",
+        "policy_trace_namespace.go",
+        "runtime.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/runtime",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/runtime",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/internal/resource",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/exported",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/shared",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/policy",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/tracing",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/log",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/temporal",
+    ],
+)

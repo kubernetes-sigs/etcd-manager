@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pollers",
+    srcs = [
+        "poller.go",
+        "util.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers",
+    visibility = ["//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore:__subpackages__"],
+    deps = [
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/exported",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/log",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/shared",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/exported",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/poller",
+    ],
+)

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sas",
+    srcs = [
+        "account.go",
+        "query_params.go",
+        "service.go",
+        "url_parts.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/internal/exported",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/internal/generated",
+        "//vendor/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/internal/shared",
+    ],
+)

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "shared",
+    srcs = [
+        "constants.go",
+        "shared.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/shared",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/shared",
+    visibility = ["//vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore:__subpackages__"],
+)
