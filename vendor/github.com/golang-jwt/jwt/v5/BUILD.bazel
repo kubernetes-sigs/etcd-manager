@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "jwt",
+    srcs = [
+        "claims.go",
+        "doc.go",
+        "ecdsa.go",
+        "ecdsa_utils.go",
+        "ed25519.go",
+        "ed25519_utils.go",
+        "errors.go",
+        "errors_go1_20.go",
+        "errors_go_other.go",
+        "hmac.go",
+        "map_claims.go",
+        "none.go",
+        "parser.go",
+        "parser_option.go",
+        "registered_claims.go",
+        "rsa.go",
+        "rsa_pss.go",
+        "rsa_utils.go",
+        "signing_method.go",
+        "token.go",
+        "token_option.go",
+        "types.go",
+        "validator.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/golang-jwt/jwt/v5",
+    importpath = "github.com/golang-jwt/jwt/v5",
+    visibility = ["//visibility:public"],
+)

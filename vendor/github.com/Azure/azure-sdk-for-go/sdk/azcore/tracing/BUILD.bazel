@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tracing",
+    srcs = [
+        "constants.go",
+        "tracing.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/tracing",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/azcore/tracing",
+    visibility = ["//visibility:public"],
+)

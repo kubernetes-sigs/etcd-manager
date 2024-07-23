@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "json",
+    srcs = [
+        "json.go",
+        "mapslice.go",
+        "marshal.go",
+        "struct.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/json",
+    importpath = "github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/json",
+    visibility = ["//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps:__subpackages__"],
+)

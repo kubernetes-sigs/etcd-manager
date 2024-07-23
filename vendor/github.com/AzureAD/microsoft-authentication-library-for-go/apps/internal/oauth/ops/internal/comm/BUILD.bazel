@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "comm",
+    srcs = [
+        "comm.go",
+        "compress.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/oauth/ops/internal/comm",
+    importpath = "github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/oauth/ops/internal/comm",
+    visibility = ["//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps:__subpackages__"],
+    deps = [
+        "//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/errors",
+        "//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/json",
+        "//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/version",
+        "//vendor/github.com/google/uuid",
+    ],
+)

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "uuid",
+    srcs = [
+        "doc.go",
+        "uuid.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/uuid",
+    importpath = "github.com/Azure/azure-sdk-for-go/sdk/internal/uuid",
+    visibility = ["//vendor/github.com/Azure/azure-sdk-for-go/sdk:__subpackages__"],
+)

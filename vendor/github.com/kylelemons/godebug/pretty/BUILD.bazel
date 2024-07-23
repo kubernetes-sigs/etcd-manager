@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pretty",
+    srcs = [
+        "doc.go",
+        "public.go",
+        "reflect.go",
+        "structure.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/kylelemons/godebug/pretty",
+    importpath = "github.com/kylelemons/godebug/pretty",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/kylelemons/godebug/diff"],
+)
