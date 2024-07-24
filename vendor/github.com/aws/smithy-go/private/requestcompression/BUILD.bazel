@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "requestcompression",
+    srcs = [
+        "gzip.go",
+        "middleware_capture_request_compression.go",
+        "request_compression.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/smithy-go/private/requestcompression",
+    importpath = "github.com/aws/smithy-go/private/requestcompression",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/transport/http",
+    ],
+)

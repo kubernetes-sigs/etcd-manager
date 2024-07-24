@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "logging",
+    srcs = ["logger.go"],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/smithy-go/logging",
+    importpath = "github.com/aws/smithy-go/logging",
+    visibility = ["//visibility:public"],
+)

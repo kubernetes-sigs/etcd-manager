@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "types",
+    srcs = [
+        "enums.go",
+        "types.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/service/ec2/types",
+    importpath = "github.com/aws/aws-sdk-go-v2/service/ec2/types",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/aws/smithy-go/document"],
+)

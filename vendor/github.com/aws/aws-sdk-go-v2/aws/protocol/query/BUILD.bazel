@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "query",
+    srcs = [
+        "array.go",
+        "encoder.go",
+        "map.go",
+        "middleware.go",
+        "object.go",
+        "value.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/aws/protocol/query",
+    importpath = "github.com/aws/aws-sdk-go-v2/aws/protocol/query",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/aws/smithy-go/encoding/httpbinding",
+        "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/transport/http",
+    ],
+)

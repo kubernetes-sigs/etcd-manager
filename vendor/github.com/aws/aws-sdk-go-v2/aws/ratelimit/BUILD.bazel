@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "ratelimit",
+    srcs = [
+        "none.go",
+        "token_bucket.go",
+        "token_rate_limit.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/aws/ratelimit",
+    importpath = "github.com/aws/aws-sdk-go-v2/aws/ratelimit",
+    visibility = ["//visibility:public"],
+)

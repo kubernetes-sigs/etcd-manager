@@ -58,6 +58,17 @@ func (enum ListIPsRequestOrderBy) String() string {
 	return string(enum)
 }
 
+func (enum ListIPsRequestOrderBy) Values() []ListIPsRequestOrderBy {
+	return []ListIPsRequestOrderBy{
+		"created_at_desc",
+		"created_at_asc",
+		"updated_at_desc",
+		"updated_at_asc",
+		"attached_at_desc",
+		"attached_at_asc",
+	}
+}
+
 func (enum ListIPsRequestOrderBy) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, enum)), nil
 }
@@ -99,6 +110,26 @@ func (enum ResourceType) String() string {
 		return "unknown_type"
 	}
 	return string(enum)
+}
+
+func (enum ResourceType) Values() []ResourceType {
+	return []ResourceType{
+		"unknown_type",
+		"instance_server",
+		"instance_ip",
+		"instance_private_nic",
+		"lb_server",
+		"fip_ip",
+		"vpc_gateway",
+		"vpc_gateway_network",
+		"k8s_node",
+		"k8s_cluster",
+		"rdb_instance",
+		"redis_cluster",
+		"baremetal_server",
+		"baremetal_private_nic",
+		"llm_deployment",
+	}
 }
 
 func (enum ResourceType) MarshalJSON() ([]byte, error) {
@@ -249,7 +280,7 @@ func (r *ListIPsResponse) UnsafeAppend(res interface{}) (uint64, error) {
 	return uint64(len(results.IPs)), nil
 }
 
-// IPAM API.
+// This API allows you to manage your Scaleway IP addresses with our IP Address Management tool.
 type API struct {
 	client *scw.Client
 }

@@ -27,8 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/gophercloud/gophercloud"
 	"google.golang.org/api/option"
 	storage "google.golang.org/api/storage/v1"
@@ -57,7 +58,7 @@ type vfsContextState struct {
 	// swiftClient is the openstack swift client
 	swiftClient *gophercloud.ServiceClient
 
-	azureClient *azureClient
+	azureClient *azblob.Client
 }
 
 // Context holds the global VFS state.
@@ -142,9 +143,6 @@ func (c *VFSContext) ReadFile(location string, options ...VFSOption) ([]byte, er
 			case "digitalocean":
 				httpURL := "http://169.254.169.254/metadata/v1" + u.Path
 				return c.readHTTPLocation(httpURL, nil, opts)
-			case "alicloud":
-				httpURL := "http://100.100.100.200/latest/meta-data/" + u.Path
-				return c.readHTTPLocation(httpURL, nil, opts)
 			case "openstack":
 				httpURL := "http://169.254.169.254/latest/meta-data/" + u.Path
 				return c.readHTTPLocation(httpURL, nil, opts)
@@ -216,17 +214,22 @@ func (c *VFSContext) BuildVfsPath(p string) (Path, error) {
 
 // readAWSMetadata reads the specified path from the AWS EC2 metadata service
 func (c *VFSContext) readAWSMetadata(ctx context.Context, path string) ([]byte, error) {
-	awsSession, err := session.NewSession()
+	config, err := awsconfig.LoadDefaultConfig(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error building AWS session: %v", err)
+		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
-	client := ec2metadata.New(awsSession)
+
+	client := imds.NewFromConfig(config)
+
 	if strings.HasPrefix(path, "/meta-data/") {
-		s, err := client.GetMetadataWithContext(ctx, strings.TrimPrefix(path, "/meta-data/"))
+		s, err := client.GetMetadata(ctx, &imds.GetMetadataInput{
+			Path: strings.TrimPrefix(path, "/meta-data/"),
+		})
 		if err != nil {
 			return nil, fmt.Errorf("error reading from AWS metadata service: %v", err)
 		}
-		return []byte(s), nil
+		defer s.Content.Close()
+		return io.ReadAll(s.Content)
 	}
 	// There are others (e.g. user-data), but as we don't use them yet let's not expose them
 	return nil, fmt.Errorf("unhandled aws metadata path %q", path)
@@ -417,7 +420,7 @@ func (c *VFSContext) getGCSClient(ctx context.Context) (*storage.Service, error)
 	}
 
 	// TODO: Should we fall back to read-only?
-	scope := storage.DevstorageReadWriteScope
+	scope := storage.DevstorageFullControlScope
 
 	gcsClient, err := storage.NewService(ctx, option.WithScopes(scope))
 	if err != nil {
@@ -482,7 +485,7 @@ func (c *VFSContext) buildAzureBlobPath(p string) (*AzureBlobPath, error) {
 }
 
 // getAzureBlobClient returns the client for azure blob storage, caching it for future reuse.
-func (c *VFSContext) getAzureBlobClient(ctx context.Context) (*azureClient, error) {
+func (c *VFSContext) getAzureBlobClient(ctx context.Context) (*azblob.Client, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 

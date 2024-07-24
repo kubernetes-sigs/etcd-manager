@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cache",
+    srcs = ["cache.go"],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/smithy-go/container/private/cache",
+    importpath = "github.com/aws/smithy-go/container/private/cache",
+    visibility = ["//visibility:public"],
+)

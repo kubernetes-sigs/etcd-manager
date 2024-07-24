@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "v4a",
+    srcs = [
+        "credentials.go",
+        "error.go",
+        "go_module_metadata.go",
+        "middleware.go",
+        "presign_middleware.go",
+        "smithy.go",
+        "v4a.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/internal/v4a",
+    importpath = "github.com/aws/aws-sdk-go-v2/internal/v4a",
+    visibility = ["//vendor/github.com/aws/aws-sdk-go-v2:__subpackages__"],
+    deps = [
+        "//vendor/github.com/aws/aws-sdk-go-v2/aws",
+        "//vendor/github.com/aws/aws-sdk-go-v2/aws/middleware",
+        "//vendor/github.com/aws/aws-sdk-go-v2/aws/signer/v4:signer",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/auth",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/context",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/sdk",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/v4a/internal/crypto",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/v4a/internal/v4:internal",
+        "//vendor/github.com/aws/smithy-go",
+        "//vendor/github.com/aws/smithy-go/auth",
+        "//vendor/github.com/aws/smithy-go/encoding/httpbinding",
+        "//vendor/github.com/aws/smithy-go/logging",
+        "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/transport/http",
+    ],
+)

@@ -91,7 +91,7 @@ func (s *vfsStore) AddBackup(srcFile string, sequence string, info *etcd.BackupI
 }
 
 func (s *vfsStore) ListBackups() ([]string, error) {
-	files, err := s.backupsBase.ReadTree()
+	files, err := s.backupsBase.ReadTree(context.TODO())
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -124,14 +124,14 @@ func (s *vfsStore) ListBackups() ([]string, error) {
 
 func (s *vfsStore) RemoveBackup(backup string) error {
 	p := s.backupsBase.Join(backup)
-
-	files, err := p.ReadTree()
+	ctx := context.TODO()
+	files, err := p.ReadTree(ctx)
 	if err != nil {
 		return fmt.Errorf("error deleting - cannot read %s: %v", p, err)
 	}
 
 	for _, f := range files {
-		err := f.RemoveAllVersions()
+		err := f.RemoveAllVersions(ctx)
 		if err != nil {
 			return fmt.Errorf("error deleting backups in %q: %v", p, err)
 		}

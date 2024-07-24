@@ -3,6 +3,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go-retryablehttp",
     srcs = [
+        "cert_error_go119.go",
+        "cert_error_go120.go",
         "client.go",
         "roundtripper.go",
     ],

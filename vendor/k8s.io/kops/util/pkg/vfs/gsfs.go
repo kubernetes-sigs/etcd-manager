@@ -118,8 +118,7 @@ func (p *GSPath) String() string {
 	return p.Path()
 }
 
-func (p *GSPath) Remove() error {
-	ctx := context.TODO()
+func (p *GSPath) Remove(ctx context.Context) error {
 	done, err := RetryWithBackoff(gcsWriteBackoff, func() (bool, error) {
 		client, err := p.getStorageClient(ctx)
 		if err != nil {
@@ -142,14 +141,14 @@ func (p *GSPath) Remove() error {
 	}
 }
 
-func (p *GSPath) RemoveAll() error {
-	tree, err := p.ReadTree()
+func (p *GSPath) RemoveAll(ctx context.Context) error {
+	tree, err := p.ReadTree(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, objectPath := range tree {
-		err := objectPath.Remove()
+		err := objectPath.Remove(ctx)
 		if err != nil {
 			return fmt.Errorf("error removing file %s: %w", objectPath, err)
 		}
@@ -158,8 +157,8 @@ func (p *GSPath) RemoveAll() error {
 	return nil
 }
 
-func (p *GSPath) RemoveAllVersions() error {
-	return p.Remove()
+func (p *GSPath) RemoveAllVersions(ctx context.Context) error {
+	return p.Remove(ctx)
 }
 
 func (p *GSPath) Join(relativePath ...string) Path {
@@ -346,9 +345,7 @@ func (p *GSPath) ReadDir() ([]Path, error) {
 }
 
 // ReadTree implements Path::ReadTree
-func (p *GSPath) ReadTree() ([]Path, error) {
-	ctx := context.TODO()
-
+func (p *GSPath) ReadTree(ctx context.Context) ([]Path, error) {
 	var ret []Path
 	done, err := RetryWithBackoff(gcsReadBackoff, func() (bool, error) {
 		// No delimiter for recursive search
@@ -418,6 +415,46 @@ func (p *GSPath) Hash(a hashing.HashAlgorithm) (*hashing.Hash, error) {
 	}
 
 	return &hashing.Hash{Algorithm: hashing.HashAlgorithmMD5, HashValue: md5Bytes}, nil
+}
+
+func (p *GSPath) GetHTTPsUrl() (string, error) {
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", p.bucket, p.key)
+	return strings.TrimSuffix(url, "/"), nil
+}
+
+func (p *GSPath) IsBucketPublic(ctx context.Context) (bool, error) {
+	client, err := p.Client(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	bucket, err := client.Buckets.Get(p.bucket).Do()
+	if err != nil {
+		return false, err
+	}
+
+	// Check bucket has uniform bucket-level IAM
+	if !bucket.IamConfiguration.BucketPolicyOnly.Enabled {
+		return false, nil
+	}
+
+	// Check `allUsers` IAM has `roles/storage.objectViewer` permission
+	policy, err := client.Buckets.GetIamPolicy(p.bucket).Do()
+	if err != nil {
+		return false, err
+	}
+
+	for _, binding := range policy.Bindings {
+		if binding.Role == "roles/storage.objectViewer" {
+			for _, member := range binding.Members {
+				if member == "allUsers" {
+					return true, nil
+				}
+			}
+		}
+	}
+
+	return false, nil
 }
 
 type terraformGSObject struct {

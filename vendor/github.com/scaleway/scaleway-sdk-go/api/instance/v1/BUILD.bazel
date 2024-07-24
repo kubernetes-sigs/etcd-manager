@@ -16,7 +16,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/scaleway/scaleway-sdk-go/api/block/v1alpha1",
-        "//vendor/github.com/scaleway/scaleway-sdk-go/api/marketplace/v1:marketplace",
+        "//vendor/github.com/scaleway/scaleway-sdk-go/api/marketplace/v2:marketplace",
         "//vendor/github.com/scaleway/scaleway-sdk-go/internal/async",
         "//vendor/github.com/scaleway/scaleway-sdk-go/internal/errors",
         "//vendor/github.com/scaleway/scaleway-sdk-go/internal/marshaler",

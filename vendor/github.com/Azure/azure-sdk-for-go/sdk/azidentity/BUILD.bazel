@@ -7,6 +7,7 @@ go_library(
         "azidentity.go",
         "azure_cli_credential.go",
         "azure_developer_cli_credential.go",
+        "azure_pipelines_credential.go",
         "chained_token_credential.go",
         "client_assertion_credential.go",
         "client_certificate_credential.go",
