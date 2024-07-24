@@ -17,10 +17,11 @@ limitations under the License.
 package aws
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"k8s.io/klog/v2"
 
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
@@ -31,9 +32,10 @@ import (
 var _ discovery.Interface = &AWSVolumes{}
 
 func (a *AWSVolumes) Poll() (map[string]discovery.Node, error) {
+	ctx := context.TODO()
 	nodes := make(map[string]discovery.Node)
 
-	allVolumes, err := a.findVolumes(false)
+	allVolumes, err := a.findVolumes(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -48,20 +50,20 @@ func (a *AWSVolumes) Poll() (map[string]discovery.Node, error) {
 	if len(instanceToVolumeMap) != 0 {
 		request := &ec2.DescribeInstancesInput{}
 		for id := range instanceToVolumeMap {
-			request.InstanceIds = append(request.InstanceIds, aws.String(id))
+			request.InstanceIds = append(request.InstanceIds, id)
 		}
 
-		response, err := a.ec2.DescribeInstances(request)
+		response, err := a.ec2.DescribeInstances(ctx, request)
 		if err != nil {
 			return nil, fmt.Errorf("error from AWS DescribeInstances: %v", err)
 		}
 
 		for _, reservation := range response.Reservations {
 			for _, instance := range reservation.Instances {
-				volume := instanceToVolumeMap[aws.StringValue(instance.InstanceId)]
+				volume := instanceToVolumeMap[aws.ToString(instance.InstanceId)]
 				if volume == nil {
 					// unexpected ... we constructed the request from the map!
-					klog.Errorf("instance not found: %q", aws.StringValue(instance.InstanceId))
+					klog.Errorf("instance not found: %q", aws.ToString(instance.InstanceId))
 					continue
 				}
 
@@ -74,13 +76,13 @@ func (a *AWSVolumes) Poll() (map[string]discovery.Node, error) {
 					ip := *instance.Ipv6Address
 					node.Endpoints = append(node.Endpoints, discovery.NodeEndpoint{IP: ip})
 				} else {
-					if aws.StringValue(instance.PrivateIpAddress) != "" {
-						ip := aws.StringValue(instance.PrivateIpAddress)
+					if aws.ToString(instance.PrivateIpAddress) != "" {
+						ip := aws.ToString(instance.PrivateIpAddress)
 						node.Endpoints = append(node.Endpoints, discovery.NodeEndpoint{IP: ip})
 					}
 					for _, ni := range instance.NetworkInterfaces {
-						if aws.StringValue(ni.PrivateIpAddress) != "" {
-							ip := aws.StringValue(ni.PrivateIpAddress)
+						if aws.ToString(ni.PrivateIpAddress) != "" {
+							ip := aws.ToString(ni.PrivateIpAddress)
 							node.Endpoints = append(node.Endpoints, discovery.NodeEndpoint{IP: ip})
 						}
 					}
