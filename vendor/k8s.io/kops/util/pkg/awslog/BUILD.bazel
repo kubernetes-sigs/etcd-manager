@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "awslog",
+    srcs = ["middleware.go"],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/k8s.io/kops/util/pkg/awslog",
+    importpath = "k8s.io/kops/util/pkg/awslog",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/aws/aws-sdk-go-v2/aws/middleware",
+        "//vendor/github.com/aws/aws-sdk-go-v2/config",
+        "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/k8s.io/klog/v2:klog",
+    ],
+)

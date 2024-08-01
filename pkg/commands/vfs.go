@@ -87,7 +87,7 @@ func (s *vfsStore) AddCommand(cmd *protoetcd.Command) error {
 func (s *vfsStore) ListCommands() ([]Command, error) {
 	ctx := context.TODO()
 
-	files, err := s.commandsBase.ReadTree()
+	files, err := s.commandsBase.ReadTree(ctx)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -128,9 +128,10 @@ func (s *vfsStore) ListCommands() ([]Command, error) {
 
 func (s *vfsStore) RemoveCommand(command Command) error {
 	p := command.(*vfsCommand).p
+	ctx := context.TODO()
 	klog.Infof("deleting command %s", p)
 
-	if err := p.Remove(); err != nil {
+	if err := p.Remove(ctx); err != nil {
 		return fmt.Errorf("error removing command %s: %v", p, err)
 	}
 

@@ -4,6 +4,8 @@ go_library(
     name = "hcloud",
     srcs = [
         "action.go",
+        "action_waiter.go",
+        "action_watch.go",
         "architecture.go",
         "certificate.go",
         "client.go",

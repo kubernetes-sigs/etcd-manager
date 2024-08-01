@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "checksum",
+    srcs = [
+        "algorithms.go",
+        "aws_chunked_encoding.go",
+        "go_module_metadata.go",
+        "middleware_add.go",
+        "middleware_compute_input_checksum.go",
+        "middleware_setup_context.go",
+        "middleware_validate_output.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+    importpath = "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+    visibility = ["//vendor/github.com/aws/aws-sdk-go-v2/service:__subpackages__"],
+    deps = [
+        "//vendor/github.com/aws/aws-sdk-go-v2/aws/signer/v4:signer",
+        "//vendor/github.com/aws/aws-sdk-go-v2/internal/context",
+        "//vendor/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
+        "//vendor/github.com/aws/smithy-go",
+        "//vendor/github.com/aws/smithy-go/logging",
+        "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/transport/http",
+    ],
+)

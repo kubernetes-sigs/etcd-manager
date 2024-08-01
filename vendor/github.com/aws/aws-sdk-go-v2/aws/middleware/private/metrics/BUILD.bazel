@@ -1,0 +1,10 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "metrics",
+    srcs = ["metrics.go"],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/aws/aws-sdk-go-v2/aws/middleware/private/metrics",
+    importpath = "github.com/aws/aws-sdk-go-v2/aws/middleware/private/metrics",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/aws/smithy-go/middleware"],
+)

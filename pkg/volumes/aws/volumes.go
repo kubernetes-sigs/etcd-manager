@@ -17,20 +17,26 @@ limitations under the License.
 package aws
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/smithy-go"
 	"k8s.io/klog/v2"
+	"k8s.io/kops/util/pkg/awslog"
 
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
@@ -47,10 +53,10 @@ type AWSVolumes struct {
 	clusterName  string
 
 	deviceMap  map[string]string
-	ec2        *ec2.EC2
+	ec2        *ec2.Client
 	instanceID string
 	localIP    string
-	metadata   *ec2metadata.EC2Metadata
+	imds       *imds.Client
 	zone       string
 }
 
@@ -58,6 +64,7 @@ var _ volumes.Volumes = &AWSVolumes{}
 
 // NewAWSVolumes returns a new aws volume provider
 func NewAWSVolumes(clusterName string, volumeTags []string, nameTag string) (*AWSVolumes, error) {
+	ctx := context.TODO()
 	a := &AWSVolumes{
 		clusterName: clusterName,
 		deviceMap:   make(map[string]string),
@@ -74,96 +81,123 @@ func NewAWSVolumes(clusterName string, volumeTags []string, nameTag string) (*AW
 		}
 	}
 
-	config := aws.NewConfig()
-	config = config.WithCredentialsChainVerboseErrors(true)
-
-	s, err := session.NewSession(config)
+	config, err := awsconfig.LoadDefaultConfig(ctx, awslog.WithAWSLogger())
 	if err != nil {
-		return nil, fmt.Errorf("error starting new AWS session: %v", err)
+		return nil, fmt.Errorf("error loading AWS config: %v", err)
 	}
-	s.Handlers.Send.PushFront(func(r *request.Request) {
-		// Log requests
-		klog.V(4).Infof("AWS API Request: %s/%s", r.ClientInfo.ServiceName, r.Operation.Name)
-	})
 
-	a.metadata = ec2metadata.New(s, config)
+	a.imds = imds.NewFromConfig(config)
 
-	region, err := a.metadata.Region()
+	regionResp, err := a.imds.GetRegion(ctx, &imds.GetRegionInput{})
 	if err != nil {
 		return nil, fmt.Errorf("error querying ec2 metadata service (for az/region): %v", err)
 	}
+	region := regionResp.Region
 
-	a.zone, err = a.metadata.GetMetadata("placement/availability-zone")
+	zoneResp, err := a.imds.GetMetadata(ctx, &imds.GetMetadataInput{Path: "placement/availability-zone"})
 	if err != nil {
 		return nil, fmt.Errorf("error querying ec2 metadata service (for az): %v", err)
 	}
+	zone, err := io.ReadAll(zoneResp.Content)
+	if err != nil {
+		return nil, fmt.Errorf("error reading ec2 metadata service response (for az): %v", err)
+	}
+	a.zone = string(zone)
 
-	a.instanceID, err = a.metadata.GetMetadata("instance-id")
+	instanceIDResp, err := a.imds.GetMetadata(ctx, &imds.GetMetadataInput{Path: "instance-id"})
 	if err != nil {
 		return nil, fmt.Errorf("error querying ec2 metadata service (for instance-id): %v", err)
 	}
+	instanceID, err := io.ReadAll(instanceIDResp.Content)
+	if err != nil {
+		return nil, fmt.Errorf("error reading ec2 metadata service response (for instance-id): %v", err)
+	}
+	a.instanceID = string(instanceID)
 
-	a.ec2 = ec2.New(s, config.WithRegion(region))
-	a.localIP, err = a.metadata.GetMetadata("ipv6")
+	a.ec2 = ec2.NewFromConfig(config, func(o *ec2.Options) {
+		o.Region = region
+	})
+	ipv6Resp, err := a.imds.GetMetadata(ctx, &imds.GetMetadataInput{Path: "ipv6"})
+	if err != nil {
+		return nil, fmt.Errorf("error querying ec2 metadata service (for ipv6): %v", err)
+	}
+	ipv6, err := io.ReadAll(ipv6Resp.Content)
+	if err != nil {
+		return nil, fmt.Errorf("error reading ec2 metadata service response (for ipv6): %v", err)
+	}
+	a.localIP = string(ipv6)
 
 	// If we have an IPv6 address, return
 	if err == nil {
 		return a, nil
 	}
-	awsErr, isAWSErr := err.(awserr.RequestFailure)
-	if !isAWSErr || awsErr.StatusCode() != 404 {
+	var awsErr *awshttp.ResponseError
+	if errors.As(err, &awsErr) && awsErr.HTTPStatusCode() != http.StatusNotFound {
 		return nil, fmt.Errorf("error querying ec2 metadata service (ipv6): %v", err)
 	} else {
-		a.localIP, err = a.metadata.GetMetadata("local-ipv4")
+		ipv4Resp, err := a.imds.GetMetadata(ctx, &imds.GetMetadataInput{Path: "local-ipv4"})
 		if err != nil {
 			return nil, fmt.Errorf("error querying ec2 metadata service (for local-ipv4): %v", err)
 		}
+		ipv4, err := io.ReadAll(ipv4Resp.Content)
+		if err != nil {
+			return nil, fmt.Errorf("error reading ec2 metadata service response (for local-ipv4): %v", err)
+		}
+		a.localIP = string(ipv4)
 	}
 
 	return a, nil
 }
 
-func (a *AWSVolumes) describeInstance() (*ec2.Instance, error) {
+func (a *AWSVolumes) describeInstance() (*ec2types.Instance, error) {
 	request := &ec2.DescribeInstancesInput{}
-	request.InstanceIds = []*string{&a.instanceID}
+	request.InstanceIds = []string{a.instanceID}
 
-	var instances []*ec2.Instance
-	err := a.ec2.DescribeInstancesPages(request, func(p *ec2.DescribeInstancesOutput, lastPage bool) (shouldContinue bool) {
-		for _, r := range p.Reservations {
+	var instances []ec2types.Instance
+	paginator := ec2.NewDescribeInstancesPaginator(a.ec2, request)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("error querying for EC2 instance %q: %v", a.instanceID, err)
+		}
+		for _, r := range output.Reservations {
 			instances = append(instances, r.Instances...)
 		}
-		return true
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error querying for EC2 instance %q: %v", a.instanceID, err)
 	}
 
 	if len(instances) != 1 {
 		return nil, fmt.Errorf("unexpected number of instances found with id %q: %d", a.instanceID, len(instances))
 	}
 
-	return instances[0], nil
+	return &instances[0], nil
 }
 
-func newEc2Filter(name string, value string) *ec2.Filter {
-	filter := &ec2.Filter{
+func newEc2Filter(name string, value string) ec2types.Filter {
+	filter := ec2types.Filter{
 		Name: aws.String(name),
-		Values: []*string{
-			aws.String(value),
+		Values: []string{
+			value,
 		},
 	}
 	return filter
 }
 
-func (a *AWSVolumes) describeVolumes(request *ec2.DescribeVolumesInput) ([]*volumes.Volume, error) {
+func (a *AWSVolumes) describeVolumes(ctx context.Context, request *ec2.DescribeVolumesInput) ([]*volumes.Volume, error) {
 	var found []*volumes.Volume
-	err := a.ec2.DescribeVolumesPages(request, func(p *ec2.DescribeVolumesOutput, lastPage bool) (shouldContinue bool) {
-		for _, v := range p.Volumes {
-			etcdName := aws.StringValue(v.VolumeId)
+	paginator := ec2.NewDescribeVolumesPaginator(a.ec2, request)
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("error querying for EC2 volumes: %v", err)
+		}
+
+		for _, v := range output.Volumes {
+			etcdName := aws.ToString(v.VolumeId)
 			if a.nameTag != "" {
 				for _, t := range v.Tags {
-					if a.nameTag == aws.StringValue(t.Key) {
-						v := aws.StringValue(t.Value)
+					if a.nameTag == aws.ToString(t.Key) {
+						v := aws.ToString(t.Value)
 						if v != "" {
 							tokens := strings.SplitN(v, "/", 2)
 							etcdName = a.clusterName + "-" + tokens[0]
@@ -173,21 +207,20 @@ func (a *AWSVolumes) describeVolumes(request *ec2.DescribeVolumesInput) ([]*volu
 			}
 
 			vol := &volumes.Volume{
-				MountName:  "master-" + aws.StringValue(v.VolumeId),
-				ProviderID: aws.StringValue(v.VolumeId),
+				MountName:  "master-" + aws.ToString(v.VolumeId),
+				ProviderID: aws.ToString(v.VolumeId),
 				EtcdName:   etcdName,
 				Info: volumes.VolumeInfo{
-					Description: aws.StringValue(v.VolumeId),
+					Description: aws.ToString(v.VolumeId),
 				},
 			}
-			state := aws.StringValue(v.State)
 
-			vol.Status = state
+			vol.Status = string(v.State)
 
 			for _, attachment := range v.Attachments {
-				vol.AttachedTo = aws.StringValue(attachment.InstanceId)
-				if aws.StringValue(attachment.InstanceId) == a.instanceID {
-					vol.LocalDevice = aws.StringValue(attachment.Device)
+				vol.AttachedTo = aws.ToString(attachment.InstanceId)
+				if aws.ToString(attachment.InstanceId) == a.instanceID {
+					vol.LocalDevice = aws.ToString(attachment.Device)
 				}
 			}
 
@@ -200,20 +233,15 @@ func (a *AWSVolumes) describeVolumes(request *ec2.DescribeVolumesInput) ([]*volu
 
 			found = append(found, vol)
 		}
-		return true
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("error querying for EC2 volumes: %v", err)
 	}
 	return found, nil
 }
 
 func (a *AWSVolumes) FindVolumes() ([]*volumes.Volume, error) {
-	return a.findVolumes(true)
+	return a.findVolumes(context.TODO(), true)
 }
 
-func (a *AWSVolumes) findVolumes(filterByAZ bool) ([]*volumes.Volume, error) {
+func (a *AWSVolumes) findVolumes(ctx context.Context, filterByAZ bool) ([]*volumes.Volume, error) {
 	request := &ec2.DescribeVolumesInput{}
 
 	if filterByAZ {
@@ -227,7 +255,7 @@ func (a *AWSVolumes) findVolumes(filterByAZ bool) ([]*volumes.Volume, error) {
 		request.Filters = append(request.Filters, newEc2Filter("tag-key", k))
 	}
 
-	return a.describeVolumes(request)
+	return a.describeVolumes(ctx, request)
 }
 
 // FindMountedVolume implements Volumes::FindMountedVolume
@@ -327,6 +355,7 @@ func (a *AWSVolumes) releaseDevice(d string, volumeID string) {
 
 // AttachVolume attaches the specified volume to this instance, returning the mountpoint & nil if successful
 func (a *AWSVolumes) AttachVolume(volume *volumes.Volume) error {
+	ctx := context.TODO()
 	volumeID := volume.ProviderID
 
 	device := volume.LocalDevice
@@ -346,11 +375,11 @@ func (a *AWSVolumes) AttachVolume(volume *volumes.Volume) error {
 				VolumeId:   aws.String(volumeID),
 			}
 
-			attachResponse, err := a.ec2.AttachVolume(request)
+			attachResponse, err := a.ec2.AttachVolume(ctx, request)
 			if err != nil {
-				aerr, ok := err.(awserr.Error)
-				if ok && aerr.Code() == "InvalidParameterValue" {
-					klog.Warning(aerr.Message())
+				var apiErr smithy.APIError
+				if errors.As(err, &apiErr) && apiErr.ErrorCode() == "InvalidParameterValue" {
+					klog.Warning(apiErr.ErrorMessage())
 					continue
 				}
 				return fmt.Errorf("error attaching EBS volume %q: %v", volumeID, err)
@@ -364,10 +393,10 @@ func (a *AWSVolumes) AttachVolume(volume *volumes.Volume) error {
 	// Wait (forever) for volume to attach or reach a failure-to-attach condition
 	for {
 		request := &ec2.DescribeVolumesInput{
-			VolumeIds: []*string{&volumeID},
+			VolumeIds: []string{volumeID},
 		}
 
-		volumes, err := a.describeVolumes(request)
+		volumes, err := a.describeVolumes(ctx, request)
 		if err != nil {
 			return fmt.Errorf("error describing EBS volume %q: %v", volumeID, err)
 		}
