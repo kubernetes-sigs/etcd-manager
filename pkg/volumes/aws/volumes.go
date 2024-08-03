@@ -118,17 +118,14 @@ func NewAWSVolumes(clusterName string, volumeTags []string, nameTag string) (*AW
 		o.Region = region
 	})
 	ipv6Resp, err := a.imds.GetMetadata(ctx, &imds.GetMetadataInput{Path: "ipv6"})
-	if err != nil {
-		return nil, fmt.Errorf("error querying ec2 metadata service (for ipv6): %v", err)
-	}
-	ipv6, err := io.ReadAll(ipv6Resp.Content)
-	if err != nil {
-		return nil, fmt.Errorf("error reading ec2 metadata service response (for ipv6): %v", err)
-	}
-	a.localIP = string(ipv6)
-
 	// If we have an IPv6 address, return
 	if err == nil {
+		ipv6, err := io.ReadAll(ipv6Resp.Content)
+		if err != nil {
+			return nil, fmt.Errorf("error reading ec2 metadata service response (for ipv6): %v", err)
+		}
+		a.localIP = string(ipv6)
+
 		return a, nil
 	}
 	var awsErr *awshttp.ResponseError
