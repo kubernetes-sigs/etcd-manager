@@ -19,6 +19,7 @@ go_library(
         "//pkg/privateapi",
         "//pkg/privateapi/discovery",
         "//pkg/privateapi/discovery/vfs",
+        "//pkg/static",
         "//pkg/tlsconfig",
         "//pkg/urls",
         "//pkg/volumes",
