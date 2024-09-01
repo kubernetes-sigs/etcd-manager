@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "static",
+    srcs = [
+        "commandstore.go",
+        "config.go",
+        "discovery.go",
+    ],
+    importpath = "sigs.k8s.io/etcd-manager/pkg/static",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/apis/etcd",
+        "//pkg/commands",
+        "//pkg/privateapi/discovery",
+        "//vendor/k8s.io/klog/v2:klog",
+    ],
+)

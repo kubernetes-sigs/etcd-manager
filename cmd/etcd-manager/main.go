@@ -42,6 +42,7 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/privateapi"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 	vfsdiscovery "sigs.k8s.io/etcd-manager/pkg/privateapi/discovery/vfs"
+	"sigs.k8s.io/etcd-manager/pkg/static"
 	"sigs.k8s.io/etcd-manager/pkg/tlsconfig"
 	"sigs.k8s.io/etcd-manager/pkg/urls"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
@@ -87,6 +88,7 @@ func main() {
 	flag.StringVar(&o.BackupInterval, "backup-interval", o.BackupInterval, "interval for periodic backups")
 	flag.StringVar(&o.DiscoveryPollInterval, "discovery-poll-interval", o.DiscoveryPollInterval, "interval for discovery poll")
 	flag.StringVar(&o.DataDir, "data-dir", o.DataDir, "directory for storing etcd data")
+	flag.StringVar(&o.StaticConfig, "static-config", o.StaticConfig, "options for static cluster config")
 
 	flag.StringVar(&o.PKIDir, "pki-dir", o.PKIDir, "directory for PKI keys")
 	flag.BoolVar(&o.Insecure, "insecure", o.Insecure, "allow use of non-secure connections for etcd-manager")
@@ -145,6 +147,10 @@ type EtcdManagerOptions struct {
 	NameTag               string
 	BackupInterval        string
 	DiscoveryPollInterval string
+
+	// StaticConfig can be provided to run with a static cluster configuration.
+	// Reconfiguration requires restarting etcd-manager externally.
+	StaticConfig string
 
 	// DNSSuffix is added to etcd member names and we then use internal client id discovery
 	DNSSuffix string
@@ -205,6 +211,15 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 
 	if o.BackupStorePath == "" {
 		return fmt.Errorf("backup-store is required")
+	}
+
+	var staticConfig *static.Config
+	if o.StaticConfig != "" {
+		parsed, err := static.ParseStaticConfig(o.StaticConfig)
+		if err != nil {
+			return fmt.Errorf("invalid static-config: %w", err)
+		}
+		staticConfig = parsed
 	}
 
 	var networkCIDR *net.IPNet
@@ -320,9 +335,13 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 			}
 			volumeProvider = externalVolumeProvider
 
-			// TODO: Allow this to be customized
-			seedDir := volumes.PathFor("/etc/kubernetes/etcd-manager/seeds")
-			discoveryProvider = external.NewExternalDiscovery(seedDir, externalVolumeProvider)
+			if staticConfig == nil {
+				// TODO: Allow this to be customized
+				seedDir := volumes.PathFor("/etc/kubernetes/etcd-manager/seeds")
+				discoveryProvider = external.NewExternalDiscovery(seedDir, externalVolumeProvider)
+			} else {
+				discoveryProvider = static.NewStaticDiscovery(staticConfig)
+			}
 
 		default:
 			fmt.Fprintf(os.Stderr, "unknown volume-provider %q\n", o.VolumeProviderID)
@@ -484,11 +503,16 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 		return fmt.Errorf("error initializing backup store: %v", err)
 	}
 
-	commandStore, err := commands.NewStore(o.BackupStorePath)
-	if err != nil {
-		klog.Fatalf("error initializing command store: %v", err)
+	var commandStore commands.Store
+	if staticConfig == nil {
+		store, err := commands.NewStore(o.BackupStorePath)
+		if err != nil {
+			klog.Fatalf("error initializing command store: %v", err)
+		}
+		commandStore = store
+	} else {
+		commandStore = static.NewStaticCommandStore(staticConfig, o.DataDir)
 	}
-
 	if _, err := legacy.ScanForExisting(o.DataDir, commandStore); err != nil {
 		klog.Fatalf("error performing scan for legacy data: %v", err)
 	}

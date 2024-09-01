@@ -50,7 +50,7 @@ func NewExternalVolumes(clusterName string, basedir string, volumeTags []string)
 	}
 
 	if len(volumeTags) != 1 {
-		return nil, fmt.Errorf("baremetal expected a single volume tag (the prefix to use)")
+		return nil, fmt.Errorf("baremetal expected a single volume tag (the prefix to use), got %v", volumeTags)
 	}
 
 	a := &ExternalVolumes{
@@ -138,7 +138,7 @@ func (a *ExternalVolumes) FindVolumes() ([]*volumes.Volume, error) {
 
 		match := true
 		for _, tag := range a.volumeTags {
-			if strings.HasPrefix(f.Name(), tag) {
+			if !strings.HasPrefix(f.Name(), tag) {
 				match = false
 			}
 		}
@@ -150,6 +150,7 @@ func (a *ExternalVolumes) FindVolumes() ([]*volumes.Volume, error) {
 
 		p := filepath.Join(a.basedir, f.Name())
 
+		// TODO: Why the extra mnt?  Is this because we also have some metadata?
 		mntPath := filepath.Join(p, "mnt")
 		stat, err := os.Stat(mntPath)
 		if err != nil {
