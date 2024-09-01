@@ -11,8 +11,8 @@ steps:
   entrypoint: dev/push-etcd-manager.sh
 timeout: 1800s
 substitutions:
-  _DOCKER_REGISTRY: 'us-central1-docker.pkg.dev'
-  _DOCKER_IMAGE_PREFIX: 'k8s-staging-images/etcd-manager/'
+  _DOCKER_REGISTRY: 'us-central1-docker.pkg.dev/k8s-staging-etcd-manager/images/'
+  _DOCKER_IMAGE_PREFIX: 'etcd-manager/'
   _GIT_TAG: 'dev'
   _PULL_BASE_REF: 'dev'
 options:
