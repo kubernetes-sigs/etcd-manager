@@ -26,11 +26,16 @@ if [[ -z "${IMAGE_PREFIX:-}" ]]; then
     exit 1
 fi
 
-IMAGE_TAG=${IMAGE_PREFIX}/etcd-manager-minimal:latest
+IMAGE_TAG=${IMAGE_PREFIX}etcd-manager-static:latest
 
 if [[ -z "${BUILD_ARGS:-}" ]]; then
     BUILD_ARGS="--load"
 fi
-echo "Building image ${IMAGE_TAG} with args ${BUILD_ARGS:-}"
 
-docker buildx build ${BUILD_ARGS} -t ${IMAGE_TAG} -f ./images/etcd-manager-minimal/Dockerfile .
+if [[ -z "${BUILD_PLATFORMS:-}" ]]; then
+    BUILD_PLATFORMS="local"
+fi
+
+echo "Building image ${IMAGE_TAG} for platforms ${BUILD_PLATFORMS} with args ${BUILD_ARGS:-}"
+
+docker buildx build ${BUILD_ARGS} --platform ${BUILD_PLATFORMS} -t ${IMAGE_TAG} -f ./images/etcd-manager-static/Dockerfile .
