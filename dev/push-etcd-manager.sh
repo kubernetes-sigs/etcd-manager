@@ -45,3 +45,6 @@ fi
 
 # Build and upload etcd-manager images & binaries
 DOCKER_REGISTRY=${DOCKER_REGISTRY} DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX} DOCKER_TAG=${VERSION} make push
+
+# Build and upload non-bazel images
+BUILD_PLATFORMS=linux/amd64,linux/arm64 BUILD_ARGS=--push IMAGE_PREFIX=${DOCKER_REGISTRY}/${DOCKER_IMAGE_PREFIX} IMAGE_TAG=${VERSION} ${REPO_ROOT}/dev/tasks/build-images
