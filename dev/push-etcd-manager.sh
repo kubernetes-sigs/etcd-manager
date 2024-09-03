@@ -46,5 +46,14 @@ fi
 # Build and upload etcd-manager images & binaries
 DOCKER_REGISTRY=${DOCKER_REGISTRY} DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX} DOCKER_TAG=${VERSION} make push
 
+# Create a custom builder that is multi-arch capable
+# See https://docs.docker.com/build/building/multi-platform/
+docker buildx create \
+  --name container-builder \
+  --driver docker-container \
+  --use \
+  --bootstrap \
+  || true # Ignore errors, assume the error is that the builder already exists
+
 # Build and upload non-bazel images
 BUILD_PLATFORMS=linux/amd64,linux/arm64 BUILD_ARGS=--push IMAGE_PREFIX=${DOCKER_REGISTRY}/${DOCKER_IMAGE_PREFIX} IMAGE_TAG=${VERSION} ${REPO_ROOT}/dev/tasks/build-images
