@@ -101,7 +101,7 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 
 		for {
 			if err := m.refreshControlStore(time.Duration(0)); err != nil {
-				return false, fmt.Errorf("error refreshing commands: %v", err)
+				return false, fmt.Errorf("error refreshing control store: %v", err)
 			}
 			if m.getRestoreBackupCommand() != nil {
 				break

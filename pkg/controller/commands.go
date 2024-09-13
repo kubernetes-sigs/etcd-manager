@@ -35,7 +35,7 @@ func (m *EtcdController) refreshControlStore(ttl time.Duration) error {
 
 	now := time.Now()
 	if ttl != time.Duration(0) && now.Before(m.controlLastRead.Add(ttl)) {
-		klog.V(4).Infof("not refreshing commands - TTL not hit")
+		klog.V(4).Infof("not refreshing control store - TTL not hit")
 		return nil
 	}
 	klog.Infof("refreshing commands")
@@ -43,6 +43,7 @@ func (m *EtcdController) refreshControlStore(ttl time.Duration) error {
 	if err != nil {
 		return err
 	}
+	klog.Infof("refreshing cluster spec")
 	controlClusterSpec, err := m.controlStore.GetExpectedClusterSpec()
 	if err != nil {
 		return err
