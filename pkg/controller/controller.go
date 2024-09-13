@@ -344,7 +344,7 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 	}
 
 	if err := m.refreshControlStore(m.controlRefreshInterval); err != nil {
-		return false, fmt.Errorf("error refreshing commands: %v", err)
+		return false, fmt.Errorf("error refreshing control store: %v", err)
 	}
 
 	isNewCluster, err := m.controlStore.IsNewCluster()
