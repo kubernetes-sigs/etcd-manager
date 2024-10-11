@@ -16,14 +16,14 @@ git pull upstream master
 
 Set the version using `dev/set-version.sh`:
 ```
-etcd-manager/dev/set-version.sh
-VERSION="$(cat etcd-manager/version.txt)"
+dev/set-version.sh
+VERSION="$(cat version.txt)"
 ```
 
 Create the branch and commit the changes (without pushing):
 ```
 git checkout -b release_${VERSION}
-git add etcd-manager/version.txt && git commit -m "Release etcd-manager/v${VERSION}"
+git add version.txt && git commit -m "Release v${VERSION}"
 ```
 
 This is the "release commit". Push and create a PR.
@@ -52,7 +52,7 @@ Create container promotion PR:
 
 ```
 # Should show image tags
-crane ls gcr.io/k8s-staging-etcd-manager | grep "${VERSION}"
+crane ls us-central1-docker.pkg.dev/k8s-staging-images/etcd-manager/etcd-manager-slim | grep "${VERSION}"
 ```
 
 ```
