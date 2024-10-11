@@ -21,7 +21,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "${REPO_ROOT}"
 
 if [[ -z "${VERSION:-}" ]]; then
-  VERSION=$(git describe --always --match 'etcd-manager/*' | sed s@etcd-manager/@@g)
+  VERSION=$(git describe --always)
 fi
 
 if [[ -z "${DOCKER_REGISTRY:-}" ]]; then
