@@ -63,7 +63,7 @@ git pull
 git checkout -b etcd-manager_images_${VERSION}
 
 echo "# ${VERSION}" >> registry.k8s.io/images/k8s-staging-etcd-manager/images.yaml
-kpromo cip --snapshot gcr.io/k8s-staging-etcd-manager --snapshot-tag "v${VERSION}" >> registry.k8s.io/images/k8s-staging-etcd-manager/images.yaml
+kpromo cip --snapshot us-central1-docker.pkg.dev/k8s-staging-images/etcd-manager --snapshot-tag "v${VERSION}" >> registry.k8s.io/images/k8s-staging-etcd-manager/images.yaml
 ```
 
 You can dry-run the promotion with
