@@ -17,7 +17,9 @@ limitations under the License.
 package openstack
 
 import (
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"context"
+
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
@@ -27,8 +29,9 @@ import (
 var _ discovery.Interface = &OpenstackVolumes{}
 
 func (os *OpenstackVolumes) Poll() (map[string]discovery.Node, error) {
+	ctx := context.TODO()
 
-	allVolumes, err := os.findVolumes(false)
+	allVolumes, err := os.findVolumes(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +45,7 @@ func (os *OpenstackVolumes) Poll() (map[string]discovery.Node, error) {
 	}
 	for i, volume := range instanceToVolumeMap {
 		mc := NewMetricContext("server", "get")
-		server, err := servers.Get(os.computeClient, i).Extract()
+		server, err := servers.Get(ctx, os.computeClient, i).Extract()
 		if mc.ObserveRequest(err) != nil {
 			klog.Warningf("Could not find server with id '%s': %v", i, err)
 			continue

@@ -17,6 +17,7 @@ limitations under the License.
 package openstack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,12 +28,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack"
-	cinderv3 "github.com/gophercloud/gophercloud/openstack/blockstorage/v3/volumes"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/availabilityzones"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/volumeattach"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	cinderv3 "github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/volumes"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/volumeattach"
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
 	utilexec "k8s.io/utils/exec"
@@ -112,6 +112,8 @@ func NewOpenstackVolumes(clusterName string, volumeTags []string, nameTag string
 		networkCIDR: networkCIDR,
 	}
 
+	ctx := context.Background()
+
 	for _, volumeTag := range volumeTags {
 		tokens := strings.SplitN(volumeTag, "=", 2)
 		if len(tokens) == 1 {
@@ -121,12 +123,12 @@ func NewOpenstackVolumes(clusterName string, volumeTags []string, nameTag string
 		}
 	}
 
-	err = stack.getClients()
+	err = stack.getClients(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not build OpenstackVolumes: %v", err)
 	}
 
-	err = stack.discoverTags()
+	err = stack.discoverTags(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -293,34 +295,34 @@ func getCredential() (gophercloud.AuthOptions, string, bool, error) {
 	}, cfg.Global.Region, cfg.BlockStorage.IgnoreVolumeAZ, nil
 }
 
-func (stack *OpenstackVolumes) getClients() error {
+func (stack *OpenstackVolumes) getClients(ctx context.Context) error {
 	authOption, region, ignoreAZ, err := getCredential()
 	if err != nil {
 		return fmt.Errorf("error building openstack credentials: %v", err)
 	}
 	stack.ignoreAZ = ignoreAZ
-	provider, err := openstack.NewClient(authOption.IdentityEndpoint)
+	client, err := openstack.NewClient(authOption.IdentityEndpoint)
 	if err != nil {
 		return fmt.Errorf("error building openstack storage client: %v", err)
 	}
 	ua := gophercloud.UserAgent{}
 	ua.Prepend("etcd-manager")
-	provider.UserAgent = ua
+	client.UserAgent = ua
 	klog.V(4).Infof("Using user-agent %s", ua.Join())
 
-	err = openstack.Authenticate(provider, authOption)
+	err = openstack.Authenticate(ctx, client, authOption)
 	if err != nil {
 		return fmt.Errorf("error authenticating openstack client: %v", err)
 	}
 
-	cinderClient, err := openstack.NewBlockStorageV3(provider, gophercloud.EndpointOpts{
+	cinderClient, err := openstack.NewBlockStorageV3(client, gophercloud.EndpointOpts{
 		Type:   "volumev3",
 		Region: region,
 	})
 	if err != nil {
 		return fmt.Errorf("error building storage client: %v", err)
 	}
-	computeClient, err := openstack.NewComputeV2(provider, gophercloud.EndpointOpts{
+	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
 		Type:   "compute",
 		Region: region,
 	})
@@ -337,7 +339,7 @@ func (stack *OpenstackVolumes) InternalIP() net.IP {
 	return stack.internalIP
 }
 
-func (stack *OpenstackVolumes) discoverTags() error {
+func (stack *OpenstackVolumes) discoverTags(ctx context.Context) error {
 
 	// Project ID
 	{
@@ -359,14 +361,8 @@ func (stack *OpenstackVolumes) discoverTags() error {
 
 	// Internal IP & zone
 	{
-
-		var extendedServer struct {
-			servers.Server
-			availabilityzones.ServerAvailabilityZoneExt
-		}
-
 		mc := NewMetricContext("server", "get")
-		err := servers.Get(stack.computeClient, strings.TrimSpace(stack.meta.ServerID)).ExtractInto(&extendedServer)
+		extendedServer, err := servers.Get(ctx, stack.computeClient, strings.TrimSpace(stack.meta.ServerID)).Extract()
 		if mc.ObserveRequest(err) != nil {
 			return fmt.Errorf("failed to retrieve server information from cloud: %v", err)
 		}
@@ -444,10 +440,10 @@ func (stack *OpenstackVolumes) matchesTags(d *cinderv3.Volume, filterByAZ bool) 
 }
 
 func (stack *OpenstackVolumes) FindVolumes() ([]*volumes.Volume, error) {
-	return stack.findVolumes(true)
+	return stack.findVolumes(context.TODO(), true)
 }
 
-func (stack *OpenstackVolumes) findVolumes(filterByAZ bool) ([]*volumes.Volume, error) {
+func (stack *OpenstackVolumes) findVolumes(ctx context.Context, filterByAZ bool) ([]*volumes.Volume, error) {
 	var volumes []*volumes.Volume
 
 	klog.V(2).Infof("Listing Openstack disks in %s/%s", stack.project, stack.meta.AvailabilityZone)
@@ -455,7 +451,7 @@ func (stack *OpenstackVolumes) findVolumes(filterByAZ bool) ([]*volumes.Volume, 
 	mc := NewMetricContext("volumes", "list")
 	pages, err := cinderv3.List(stack.volumeClient, cinderv3.ListOpts{
 		TenantID: stack.project,
-	}).AllPages()
+	}).AllPages(ctx)
 	if mc.ObserveRequest(err) != nil {
 		return volumes, fmt.Errorf("FindVolumes: Failed to list volumes: %v", err)
 	}
@@ -585,7 +581,7 @@ func (stack *OpenstackVolumes) AttachVolume(volume *volumes.Volume) error {
 		VolumeID: volume.ProviderID,
 	}
 	mc := NewMetricContext("volume", "attach")
-	volumeAttachment, err := volumeattach.Create(stack.computeClient, stack.meta.ServerID, opts).Extract()
+	volumeAttachment, err := volumeattach.Create(context.TODO(), stack.computeClient, stack.meta.ServerID, opts).Extract()
 	if mc.ObserveRequest(err) != nil {
 		return fmt.Errorf("error attaching volume %s to server %s: %v", opts.VolumeID, stack.meta.ServerID, err)
 	}
