@@ -106,6 +106,10 @@ func (m *BackupCleanup) MaybeDoBackupMaintenance(ctx context.Context) error {
 		return nil
 	}
 
+	// Set the last backup cleanup time before we run the cleanup,
+	// so that we don't run this again immediately even if the cleanup fails.
+	m.lastBackupCleanup = now
+
 	backupNames, err := m.backupStore.ListBackups()
 	if err != nil {
 		return fmt.Errorf("error listing backups: %v", err)
@@ -182,8 +186,6 @@ func (m *BackupCleanup) MaybeDoBackupMaintenance(ctx context.Context) error {
 	if removedCount != 0 {
 		klog.Infof("Removed %d old backups", removedCount)
 	}
-
-	m.lastBackupCleanup = now
 
 	return nil
 }
