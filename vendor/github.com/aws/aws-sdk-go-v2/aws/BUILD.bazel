@@ -4,6 +4,7 @@ go_library(
     name = "aws",
     srcs = [
         "accountid_endpoint_mode.go",
+        "checksum.go",
         "config.go",
         "context.go",
         "credential_cache.go",

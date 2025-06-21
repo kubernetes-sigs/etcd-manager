@@ -11,31 +11,24 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Initiates the copy of an AMI. You can copy an AMI from one Region to another,
-// or from a Region to an Outpost. You can't copy an AMI from an Outpost to a
-// Region, from one Outpost to another, or within the same Outpost. To copy an AMI
-// to another partition, see [CreateStoreImageTask].
+// Initiates an AMI copy operation. You can copy an AMI from one Region to
+// another, or from a Region to an Outpost. You can't copy an AMI from an Outpost
+// to a Region, from one Outpost to another, or within the same Outpost. To copy an
+// AMI to another partition, see [CreateStoreImageTask].
 //
-// To copy an AMI from one Region to another, specify the source Region using the
-// SourceRegion parameter, and specify the destination Region using its endpoint.
-// Copies of encrypted backing snapshots for the AMI are encrypted. Copies of
-// unencrypted backing snapshots remain unencrypted, unless you set Encrypted
-// during the copy operation. You cannot create an unencrypted copy of an encrypted
-// backing snapshot.
+// When you copy an AMI from one Region to another, the destination Region is the
+// current Region.
 //
-// To copy an AMI from a Region to an Outpost, specify the source Region using the
-// SourceRegion parameter, and specify the ARN of the destination Outpost using
-// DestinationOutpostArn. Backing snapshots copied to an Outpost are encrypted by
-// default using the default encryption key for the Region, or a different key that
-// you specify in the request using KmsKeyId. Outposts do not support unencrypted
-// snapshots. For more information, [Amazon EBS local snapshots on Outposts]in the Amazon EBS User Guide.
+// When you copy an AMI from a Region to an Outpost, specify the ARN of the
+// Outpost as the destination. Backing snapshots copied to an Outpost are encrypted
+// by default using the default encryption key for the Region or the key that you
+// specify. Outposts do not support unencrypted snapshots.
 //
-// For more information about the prerequisites and limits when copying an AMI,
-// see [Copy an AMI]in the Amazon EC2 User Guide.
+// For information about the prerequisites when copying an AMI, see [Copy an Amazon EC2 AMI] in the Amazon
+// EC2 User Guide.
 //
 // [CreateStoreImageTask]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html
-// [Amazon EBS local snapshots on Outposts]: https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#ami
-// [Copy an AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html
+// [Copy an Amazon EC2 AMI]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html
 func (c *Client) CopyImage(ctx context.Context, params *CopyImageInput, optFns ...func(*Options)) (*CopyImageOutput, error) {
 	if params == nil {
 		params = &CopyImageInput{}
@@ -70,9 +63,9 @@ type CopyImageInput struct {
 	SourceRegion *string
 
 	// Unique, case-sensitive identifier you provide to ensure idempotency of the
-	// request. For more information, see [Ensuring idempotency]in the Amazon EC2 API Reference.
+	// request. For more information, see [Ensuring idempotency in Amazon EC2 API requests]in the Amazon EC2 API Reference.
 	//
-	// [Ensuring idempotency]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html
+	// [Ensuring idempotency in Amazon EC2 API requests]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html
 	ClientToken *string
 
 	// Indicates whether to include your user-defined AMI tags when copying the AMI.
@@ -111,10 +104,10 @@ type CopyImageInput struct {
 	// encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot
 	// create an unencrypted copy of an encrypted snapshot. The default KMS key for
 	// Amazon EBS is used unless you specify a non-default Key Management Service (KMS)
-	// KMS key using KmsKeyId . For more information, see [Amazon EBS encryption] in the Amazon EBS User
+	// KMS key using KmsKeyId . For more information, see [Use encryption with EBS-backed AMIs] in the Amazon EC2 User
 	// Guide.
 	//
-	// [Amazon EBS encryption]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-encryption.html
+	// [Use encryption with EBS-backed AMIs]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html
 	Encrypted *bool
 
 	// The identifier of the symmetric Key Management Service (KMS) KMS key to use
@@ -142,6 +135,21 @@ type CopyImageInput struct {
 	//
 	// Amazon EBS does not support asymmetric KMS keys.
 	KmsKeyId *string
+
+	// Specify a completion duration, in 15 minute increments, to initiate a
+	// time-based AMI copy. The specified completion duration applies to each of the
+	// snapshots associated with the AMI. Each snapshot associated with the AMI will be
+	// completed within the specified completion duration, with copy throughput
+	// automatically adjusted for each snapshot based on its size to meet the timing
+	// target.
+	//
+	// If you do not specify a value, the AMI copy operation is completed on a
+	// best-effort basis.
+	//
+	// For more information, see [Time-based copies for Amazon EBS snapshots and EBS-backed AMIs].
+	//
+	// [Time-based copies for Amazon EBS snapshots and EBS-backed AMIs]: https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html
+	SnapshotCopyCompletionDurationMinutes *int64
 
 	// The tags to apply to the new AMI and new snapshots. You can tag the AMI, the
 	// snapshots, or both.
@@ -216,6 +224,9 @@ func (c *Client) addOperationCopyImageMiddlewares(stack *middleware.Stack, optio
 	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
+	if err = addSpanRetryLoop(stack, options); err != nil {
+		return err
+	}
 	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
@@ -232,6 +243,12 @@ func (c *Client) addOperationCopyImageMiddlewares(stack *middleware.Stack, optio
 		return err
 	}
 	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
+	if err = addIdempotencyToken_opCopyImageMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addOpCopyImageValidationMiddleware(stack); err != nil {
@@ -255,7 +272,52 @@ func (c *Client) addOperationCopyImageMiddlewares(stack *middleware.Stack, optio
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
+}
+
+type idempotencyToken_initializeOpCopyImage struct {
+	tokenProvider IdempotencyTokenProvider
+}
+
+func (*idempotencyToken_initializeOpCopyImage) ID() string {
+	return "OperationIdempotencyTokenAutoFill"
+}
+
+func (m *idempotencyToken_initializeOpCopyImage) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	if m.tokenProvider == nil {
+		return next.HandleInitialize(ctx, in)
+	}
+
+	input, ok := in.Parameters.(*CopyImageInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("expected middleware input to be of type *CopyImageInput ")
+	}
+
+	if input.ClientToken == nil {
+		t, err := m.tokenProvider.GetIdempotencyToken()
+		if err != nil {
+			return out, metadata, err
+		}
+		input.ClientToken = &t
+	}
+	return next.HandleInitialize(ctx, in)
+}
+func addIdempotencyToken_opCopyImageMiddleware(stack *middleware.Stack, cfg Options) error {
+	return stack.Initialize.Add(&idempotencyToken_initializeOpCopyImage{tokenProvider: cfg.IdempotencyTokenProvider}, middleware.Before)
 }
 
 func newServiceMetadataMiddleware_opCopyImage(region string) *awsmiddleware.RegisterServiceMetadata {

@@ -17,6 +17,7 @@ go_library(
         "//vendor/github.com/aws/aws-sdk-go-v2/aws/middleware",
         "//vendor/github.com/aws/smithy-go",
         "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/tracing",
         "//vendor/github.com/aws/smithy-go/transport/http",
     ],
 )

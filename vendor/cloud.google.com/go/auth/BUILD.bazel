@@ -12,5 +12,6 @@ go_library(
     deps = [
         "//vendor/cloud.google.com/go/auth/internal",
         "//vendor/cloud.google.com/go/auth/internal/jwt",
+        "//vendor/github.com/googleapis/gax-go/v2/internallog",
     ],
 )

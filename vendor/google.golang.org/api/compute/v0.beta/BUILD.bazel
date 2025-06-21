@@ -11,6 +11,7 @@ go_library(
     importpath = "google.golang.org/api/compute/v0.beta",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/github.com/googleapis/gax-go/v2/internallog",
         "//vendor/google.golang.org/api/googleapi",
         "//vendor/google.golang.org/api/internal",
         "//vendor/google.golang.org/api/internal/gensupport",

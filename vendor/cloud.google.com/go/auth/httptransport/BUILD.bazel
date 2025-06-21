@@ -4,7 +4,6 @@ go_library(
     name = "httptransport",
     srcs = [
         "httptransport.go",
-        "trace.go",
         "transport.go",
     ],
     importmap = "sigs.k8s.io/etcd-manager/vendor/cloud.google.com/go/auth/httptransport",
@@ -16,9 +15,8 @@ go_library(
         "//vendor/cloud.google.com/go/auth/internal",
         "//vendor/cloud.google.com/go/auth/internal/transport",
         "//vendor/cloud.google.com/go/auth/internal/transport/cert",
-        "//vendor/go.opencensus.io/plugin/ochttp",
-        "//vendor/go.opencensus.io/trace",
-        "//vendor/go.opencensus.io/trace/propagation",
+        "//vendor/github.com/googleapis/gax-go/v2/internallog",
+        "//vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
         "//vendor/golang.org/x/net/http2",
     ],
 )

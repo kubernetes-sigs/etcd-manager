@@ -9,6 +9,7 @@ go_library(
         "iterator.go",
         "key.go",
         "kv.go",
+        "rawhelpers.go",
         "set.go",
         "type_string.go",
         "value.go",
@@ -16,8 +17,5 @@ go_library(
     importmap = "sigs.k8s.io/etcd-manager/vendor/go.opentelemetry.io/otel/attribute",
     importpath = "go.opentelemetry.io/otel/attribute",
     visibility = ["//visibility:public"],
-    deps = [
-        "//vendor/go.opentelemetry.io/otel/internal",
-        "//vendor/go.opentelemetry.io/otel/internal/attribute",
-    ],
+    deps = ["//vendor/go.opentelemetry.io/otel/attribute/internal"],
 )

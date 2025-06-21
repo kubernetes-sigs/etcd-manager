@@ -4,6 +4,7 @@ go_library(
     name = "stats",
     srcs = [
         "handlers.go",
+        "metrics.go",
         "stats.go",
     ],
     importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/stats",

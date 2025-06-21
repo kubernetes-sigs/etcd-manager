@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "balancer.go",
         "conn_state_evaluator.go",
+        "subconn.go",
     ],
     importmap = "sigs.k8s.io/etcd-manager/vendor/google.golang.org/grpc/balancer",
     importpath = "google.golang.org/grpc/balancer",
@@ -13,6 +14,7 @@ go_library(
         "//vendor/google.golang.org/grpc/channelz",
         "//vendor/google.golang.org/grpc/connectivity",
         "//vendor/google.golang.org/grpc/credentials",
+        "//vendor/google.golang.org/grpc/experimental/stats",
         "//vendor/google.golang.org/grpc/grpclog",
         "//vendor/google.golang.org/grpc/internal",
         "//vendor/google.golang.org/grpc/metadata",

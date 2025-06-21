@@ -44,9 +44,11 @@ go_library(
         "//vendor/github.com/aws/smithy-go/endpoints",
         "//vendor/github.com/aws/smithy-go/io",
         "//vendor/github.com/aws/smithy-go/logging",
+        "//vendor/github.com/aws/smithy-go/metrics",
         "//vendor/github.com/aws/smithy-go/middleware",
         "//vendor/github.com/aws/smithy-go/ptr",
         "//vendor/github.com/aws/smithy-go/time",
+        "//vendor/github.com/aws/smithy-go/tracing",
         "//vendor/github.com/aws/smithy-go/transport/http",
     ],
 )

@@ -11,6 +11,7 @@ go_library(
         "headerlist.go",
         "host.go",
         "md5_checksum.go",
+        "metrics.go",
         "middleware_close_response_body.go",
         "middleware_content_length.go",
         "middleware_header_comment.go",
@@ -32,8 +33,10 @@ go_library(
         "//vendor/github.com/aws/smithy-go",
         "//vendor/github.com/aws/smithy-go/auth",
         "//vendor/github.com/aws/smithy-go/logging",
+        "//vendor/github.com/aws/smithy-go/metrics",
         "//vendor/github.com/aws/smithy-go/middleware",
         "//vendor/github.com/aws/smithy-go/time",
+        "//vendor/github.com/aws/smithy-go/tracing",
         "//vendor/github.com/aws/smithy-go/transport/http/internal/io",
     ],
 )

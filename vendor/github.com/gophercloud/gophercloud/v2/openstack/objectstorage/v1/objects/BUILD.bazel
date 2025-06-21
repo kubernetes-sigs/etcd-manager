@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "objects",
+    srcs = [
+        "doc.go",
+        "requests.go",
+        "results.go",
+        "urls.go",
+    ],
+    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/gophercloud/gophercloud/v2/openstack/objectstorage/v1/objects",
+    importpath = "github.com/gophercloud/gophercloud/v2/openstack/objectstorage/v1/objects",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/gophercloud/gophercloud/v2:gophercloud",
+        "//vendor/github.com/gophercloud/gophercloud/v2/openstack/objectstorage/v1:objectstorage",
+        "//vendor/github.com/gophercloud/gophercloud/v2/openstack/objectstorage/v1/accounts",
+        "//vendor/github.com/gophercloud/gophercloud/v2/openstack/objectstorage/v1/containers",
+        "//vendor/github.com/gophercloud/gophercloud/v2/pagination",
+    ],
+)

@@ -16,7 +16,6 @@ go_library(
         "//vendor/cloud.google.com/go/auth/internal/transport/cert",
         "//vendor/cloud.google.com/go/compute/metadata",
         "//vendor/github.com/google/s2a-go",
-        "//vendor/github.com/google/s2a-go/fallback",
         "//vendor/google.golang.org/grpc/credentials",
     ],
 )

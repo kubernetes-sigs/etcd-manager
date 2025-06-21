@@ -21,7 +21,7 @@ go_library(
         "zz_models_serde.go",
         "zz_options.go",
         "zz_pageblob_client.go",
-        "zz_response_types.go",
+        "zz_responses.go",
         "zz_service_client.go",
         "zz_time_rfc1123.go",
         "zz_time_rfc3339.go",

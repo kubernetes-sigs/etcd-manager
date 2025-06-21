@@ -20,6 +20,7 @@ go_library(
         "//vendor/github.com/aws/smithy-go/encoding/httpbinding",
         "//vendor/github.com/aws/smithy-go/logging",
         "//vendor/github.com/aws/smithy-go/middleware",
+        "//vendor/github.com/aws/smithy-go/tracing",
         "//vendor/github.com/aws/smithy-go/transport/http",
     ],
 )

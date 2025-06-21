@@ -10,10 +10,10 @@ go_library(
     importpath = "github.com/scaleway/scaleway-sdk-go/api/marketplace/v2",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/github.com/scaleway/scaleway-sdk-go/internal/errors",
-        "//vendor/github.com/scaleway/scaleway-sdk-go/internal/marshaler",
-        "//vendor/github.com/scaleway/scaleway-sdk-go/internal/parameter",
+        "//vendor/github.com/scaleway/scaleway-sdk-go/errors",
+        "//vendor/github.com/scaleway/scaleway-sdk-go/marshaler",
         "//vendor/github.com/scaleway/scaleway-sdk-go/namegenerator",
+        "//vendor/github.com/scaleway/scaleway-sdk-go/parameter",
         "//vendor/github.com/scaleway/scaleway-sdk-go/scw",
     ],
 )

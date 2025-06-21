@@ -23,8 +23,8 @@ go_library(
     importpath = "github.com/scaleway/scaleway-sdk-go/scw",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/github.com/scaleway/scaleway-sdk-go/errors",
         "//vendor/github.com/scaleway/scaleway-sdk-go/internal/auth",
-        "//vendor/github.com/scaleway/scaleway-sdk-go/internal/errors",
         "//vendor/github.com/scaleway/scaleway-sdk-go/internal/generic",
         "//vendor/github.com/scaleway/scaleway-sdk-go/logger",
         "//vendor/github.com/scaleway/scaleway-sdk-go/validation",
