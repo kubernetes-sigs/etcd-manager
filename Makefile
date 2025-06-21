@@ -17,6 +17,8 @@ STABLE_DOCKER_IMAGE_PREFIX := $(shell tools/get_workspace_status.sh | grep STABL
 STABLE_DOCKER_TAG          := $(shell tools/get_workspace_status.sh | grep STABLE_DOCKER_TAG | cut -d ' ' -f 2)
 IMAGE_BASE                 := $(STABLE_DOCKER_REGISTRY)/$(STABLE_DOCKER_IMAGE_PREFIX)
 
+KO=go run github.com/google/ko@v0.18.0
+
 BAZEL?=bazelisk
 BAZEL_FLAGS=--features=pure --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
 
@@ -100,11 +102,11 @@ push-etcd-backup-manifest:
 		$(IMAGE_BASE)etcd-backup:$(STABLE_DOCKER_TAG)
 
 .PHONY: push-images
-push-images: push-etcd-manager push-etcd-manager-slim push-etcd-dump push-etcd-backup
+push-images: push-etcd-manager push-etcd-dump push-etcd-backup
 	echo "pushed images"
 
 .PHONY: push-manifests
-push-manifests: push-etcd-manager-manifest push-etcd-manager-slim-manifest push-etcd-dump-manifest push-etcd-backup-manifest
+push-manifests: push-etcd-manager-manifest push-etcd-dump-manifest push-etcd-backup-manifest
 	echo "pushed manifests"
 
 .PHONY: push
@@ -149,3 +151,16 @@ staticcheck-all:
 .PHONY: staticcheck-working
 staticcheck-working:
 	go list ./... | grep -v "etcd-manager/pkg/[cepv]" | xargs go run honnef.co/go/tools/cmd/staticcheck@v0.2.1
+
+.PHONY: ko-dist
+ko-dist: ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64
+
+.PHONY: ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64
+ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64: ko-export-etcd-manager-slim-%:
+	mkdir -p dist
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-slim-$*.tar ./cmd/etcd-manager/
+	gzip -f dist/etcd-manager-slim-$*.tar
+
+.PHONY: ko-push-etcd-manager-slim
+ko-push-etcd-manager-slim:
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager/

@@ -1,5 +1,18 @@
 steps:
+# Push the images
+- name: "mirror.gcr.io/library/golang:1.24.4-bookworm"
+  id: slim-image
+  entrypoint: make
+  env:
+  - PULL_BASE_REF=$_PULL_BASE_REF
+  # We don't pass version; we want to use our own version tagging from git
+  #- VERSION=$_GIT_TAG
+  - DOCKER_REGISTRY=$_DOCKER_REGISTRY
+  - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
+  args:
+  - ko-push-etcd-manager-slim
 - name: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
+  id: legacy-images
   env:
   - PULL_BASE_REF=$_PULL_BASE_REF
   # We don't pass version; we want to use our own version tagging from git
