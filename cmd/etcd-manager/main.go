@@ -209,9 +209,9 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 		return fmt.Errorf("cluster-name is required")
 	}
 
-	if o.BackupStorePath == "" {
-		return fmt.Errorf("backup-store is required")
-	}
+	//if o.BackupStorePath == "" {
+	//	return fmt.Errorf("backup-store is required")
+	//}
 
 	var staticConfig *static.Config
 	if o.StaticConfig != "" {

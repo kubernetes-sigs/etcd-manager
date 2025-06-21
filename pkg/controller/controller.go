@@ -392,37 +392,41 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 
 	desiredQuorumSize := quorumSize(int(clusterSpec.MemberCount))
 
-	restoreBackupCommand := m.getRestoreBackupCommand()
-	if restoreBackupCommand != nil {
-		if changed, err := m.verifyEtcdVersion(clusterSpec); err != nil {
-			return changed, err
+	if m.backupStore.Spec() == "" {
+		klog.V(4).Infof("skipping backup/restore")
+	} else {
+		restoreBackupCommand := m.getRestoreBackupCommand()
+		if restoreBackupCommand != nil {
+			if changed, err := m.verifyEtcdVersion(clusterSpec); err != nil {
+				return changed, err
+			}
+
+			data := restoreBackupCommand.Data()
+			klog.Infof("got restore-backup command: %v", data.String())
+
+			if data.RestoreBackup == nil || data.RestoreBackup.ClusterSpec == nil {
+				// Should be unreachable
+				klog.Warningf("restore-backup command had no data: %v", restoreBackupCommand)
+				return false, fmt.Errorf("RestoreBackup was not set: %v", restoreBackupCommand)
+			}
+
+			if ackedPeerCount < quorumSize(int(clusterSpec.MemberCount)) {
+				klog.Infof("insufficient peers in our gossip group to build a cluster of size %d", clusterSpec.MemberCount)
+				return false, nil
+			}
+
+			clusterSpec := data.RestoreBackup.ClusterSpec
+			if _, err := m.createNewCluster(ctx, clusterState, clusterSpec); err != nil {
+				return false, err
+			}
+
+			return m.restoreBackupAndLiftQuarantine(ctx, clusterSpec, clusterState, restoreBackupCommand)
 		}
 
-		data := restoreBackupCommand.Data()
-		klog.Infof("got restore-backup command: %v", data.String())
-
-		if data.RestoreBackup == nil || data.RestoreBackup.ClusterSpec == nil {
-			// Should be unreachable
-			klog.Warningf("restore-backup command had no data: %v", restoreBackupCommand)
-			return false, fmt.Errorf("RestoreBackup was not set: %v", restoreBackupCommand)
-		}
-
-		if ackedPeerCount < quorumSize(int(clusterSpec.MemberCount)) {
-			klog.Infof("insufficient peers in our gossip group to build a cluster of size %d", clusterSpec.MemberCount)
-			return false, nil
-		}
-
-		clusterSpec := data.RestoreBackup.ClusterSpec
-		if _, err := m.createNewCluster(ctx, clusterState, clusterSpec); err != nil {
-			return false, err
-		}
-
-		return m.restoreBackupAndLiftQuarantine(ctx, clusterSpec, clusterState, restoreBackupCommand)
-	}
-
-	if len(clusterState.members) != 0 {
-		if err := m.maybeBackup(ctx, clusterSpec, clusterState); err != nil {
-			klog.Warningf("error during backup: %v", err)
+		if len(clusterState.members) != 0 {
+			if err := m.maybeBackup(ctx, clusterSpec, clusterState); err != nil {
+				klog.Warningf("error during backup: %v", err)
+			}
 		}
 	}
 
