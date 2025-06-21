@@ -34,7 +34,7 @@ if [[ -z "${DOCKER_IMAGE_PREFIX}" ]]; then
 fi
 
 if [[ -z "${DOCKER_TAG}" ]]; then
-  DOCKER_TAG="latest"
+  DOCKER_TAG=$(git describe --always)
 fi
 
 echo "STABLE_DOCKER_REGISTRY ${DOCKER_REGISTRY}"
