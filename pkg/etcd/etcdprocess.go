@@ -19,7 +19,6 @@ package etcd
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"flag"
 	"fmt"
 	"net"
 	"net/url"
@@ -41,16 +40,10 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
-var baseDirs = []string{"/opt"}
+var baseDirs = []string{"/opt", "/tmp"}
 var isTest = false
 
 func init() {
-	// For bazel
-	// TODO: Use a flag?
-
-	// used to fix glog parse error.
-	_ = flag.CommandLine.Parse([]string{})
-
 	if os.Getenv("TEST_SRCDIR") != "" && os.Getenv("TEST_WORKSPACE") != "" {
 		d := filepath.Join(os.Getenv("TEST_SRCDIR"), os.Getenv("TEST_WORKSPACE"))
 		klog.Infof("found bazel binary location: %s", d)
@@ -157,6 +150,8 @@ func BindirForEtcdVersion(etcdVersion string, cmd string) (string, error) {
 	for _, baseDir := range baseDirs {
 		binDir := filepath.Join(baseDir, "etcd-"+etcdVersion)
 		binDirs = append(binDirs, binDir)
+		binDirLong := filepath.Join(baseDir, "etcd-"+etcdVersion+"-"+runtime.GOOS+"-"+runtime.GOARCH)
+		binDirs = append(binDirs, binDirLong)
 	}
 
 	if isTest {
@@ -179,14 +174,17 @@ func BindirForEtcdVersion(etcdVersion string, cmd string) (string, error) {
 
 	for _, binDir := range binDirs {
 		etcdBinary := filepath.Join(binDir, cmd)
+		klog.Infof("etcdBinary=%s", etcdBinary)
 		_, err := os.Stat(etcdBinary)
 		if err != nil {
 			if os.IsNotExist(err) {
+				klog.Infof("NOT found etcdBinary=%s", etcdBinary)
 				continue
 			} else {
 				return "", fmt.Errorf("error checking for %s at %s: %v", cmd, etcdBinary, err)
 			}
 		}
+		klog.Infof("FOUND etcdBinary=%s", etcdBinary)
 		return binDir, nil
 	}
 

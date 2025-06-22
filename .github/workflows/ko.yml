@@ -7,12 +7,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-tags: 'true'
-
     - name: Build etcd-manager-slim
       run: |
         make ko-dist
+
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run integration tests
+      run: |
+        make test-integration
+
