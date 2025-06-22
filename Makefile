@@ -101,16 +101,8 @@ push-etcd-backup-manifest:
 	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest push --purge \
 		$(IMAGE_BASE)etcd-backup:$(STABLE_DOCKER_TAG)
 
-.PHONY: push-images
-push-images: push-etcd-manager push-etcd-dump push-etcd-backup
-	echo "pushed images"
-
-.PHONY: push-manifests
-push-manifests: push-etcd-manager-manifest push-etcd-dump-manifest push-etcd-backup-manifest
-	echo "pushed manifests"
-
 .PHONY: push
-push: push-images push-manifests
+push: push-etcd-manager push-etcd-manager-manifest
 
 .PHONY: gazelle
 gazelle:
@@ -153,12 +145,32 @@ staticcheck-working:
 	go list ./... | grep -v "etcd-manager/pkg/[cepv]" | xargs go run honnef.co/go/tools/cmd/staticcheck@v0.2.1
 
 .PHONY: ko-dist
-ko-dist: ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64
+ko-dist: ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64 ko-export-etcd-backup-amd64 ko-export-etcd-backup-arm64 ko-export-etcd-dump-amd64 ko-export-etcd-dump-arm64
+
+.PHONY: ko-export-etcd-backup-amd64 ko-export-etcd-backup-arm64
+ko-export-etcd-backup-amd64 ko-export-etcd-backup-arm64: ko-export-etcd-backup-%:
+	mkdir -p dist
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-backup-$*.tar ./cmd/etcd-backup/
+	gzip -f dist/etcd-backup-$*.tar
+
+.PHONY: ko-push-etcd-backup
+ko-push-etcd-backup:
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-backup/
+
+.PHONY: ko-export-etcd-dump-amd64 ko-export-etcd-dump-arm64
+ko-export-etcd-dump-amd64 ko-export-etcd-dump-arm64: ko-export-etcd-dump-%:
+	mkdir -p dist
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-dump-$*.tar ./cmd/etcd-dump/
+	gzip -f dist/etcd-dump-$*.tar
+
+.PHONY: ko-push-etcd-dump
+ko-push-etcd-dump:
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-dump/
 
 .PHONY: ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64
 ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64: ko-export-etcd-manager-slim-%:
 	mkdir -p dist
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-slim-$*.tar ./cmd/etcd-manager/
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-slim-$*.tar ./cmd/etcd-manager/
 	gzip -f dist/etcd-manager-slim-$*.tar
 
 .PHONY: ko-push-etcd-manager-slim
