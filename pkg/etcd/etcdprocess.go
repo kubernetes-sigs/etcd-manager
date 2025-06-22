@@ -19,7 +19,6 @@ package etcd
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"flag"
 	"fmt"
 	"net"
 	"net/url"
@@ -41,16 +40,10 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
-var baseDirs = []string{"/opt"}
+var baseDirs = []string{"/opt", "/tmp"}
 var isTest = false
 
 func init() {
-	// For bazel
-	// TODO: Use a flag?
-
-	// used to fix glog parse error.
-	_ = flag.CommandLine.Parse([]string{})
-
 	if os.Getenv("TEST_SRCDIR") != "" && os.Getenv("TEST_WORKSPACE") != "" {
 		d := filepath.Join(os.Getenv("TEST_SRCDIR"), os.Getenv("TEST_WORKSPACE"))
 		klog.Infof("found bazel binary location: %s", d)

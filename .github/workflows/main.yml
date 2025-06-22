@@ -1,4 +1,4 @@
-name: Bazel
+name: CI
 
 on:
   - push
@@ -7,68 +7,42 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install bazelisk
+      with:
+        fetch-tags: 'true'
+    - name: Build etcd-manager-slim
       run: |
-        curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64"
-        mkdir -p "${GITHUB_WORKSPACE}/bin/"
-        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
-        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-
-    - name: Build etcd-manager
-      run: |
-        ./dev/build-assets.sh $(git describe --always 2>/dev/null)
+        make ko-dist
 
   test:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install bazelisk
+    - name: Run tests
       run: |
-        curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64"
-        mkdir -p "${GITHUB_WORKSPACE}/bin/"
-        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
-        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-
-    - name: Test etcd-manager
-      run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //... -//test/integration/upgradedowngrade:all -//test/integration/backuprestore:all
+        make test-short
 
   test-upgradedowngrade:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install bazelisk
+    - name: Run upgradedowngrade tests
       run: |
-        curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64"
-        mkdir -p "${GITHUB_WORKSPACE}/bin/"
-        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
-        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-
-    - name: Test etcd-manager
-      run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //test/integration/upgradedowngrade:all
+        make test-upgradedowngrade
 
   test-backuprestore:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install bazelisk
+    - name: Run backuprestore tests
       run: |
-        curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64"
-        mkdir -p "${GITHUB_WORKSPACE}/bin/"
-        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
-        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
+        make test-backuprestore
 
-    - name: Test etcd-manager
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run integration tests
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed -- //test/integration/backuprestore:all
+        make test-integration

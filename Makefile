@@ -176,3 +176,32 @@ ko-export-etcd-manager-slim-amd64 ko-export-etcd-manager-slim-arm64: ko-export-e
 .PHONY: ko-push-etcd-manager-slim
 ko-push-etcd-manager-slim:
 	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager/
+
+# Must match AllEtcdVersions in pkg/etcdversions/mappings.go
+.PHONY: download-etcd-versions
+download-etcd-versions:
+	dev/download-etcd.sh 3.1.12
+	dev/download-etcd.sh 3.2.18
+	dev/download-etcd.sh 3.2.24
+	dev/download-etcd.sh 3.3.10
+	dev/download-etcd.sh 3.3.13
+	dev/download-etcd.sh 3.3.17
+	dev/download-etcd.sh 3.4.3
+	dev/download-etcd.sh 3.4.13
+	dev/download-etcd.sh 3.5.7
+
+.PHONY: test-short
+test-short:
+	go test -v -short ./...
+
+.PHONY: test-integration
+test-integration: download-etcd-versions
+	go test -v ./test/integration/backuprestore
+
+.PHONY: test-backuprestore
+test-backuprestore: download-etcd-versions
+	go test -v ./test/integration/backuprestore
+
+.PHONY: test-upgradedowngrade
+test-upgradedowngrade: download-etcd-versions
+	go test -v ./test/integration/upgradedowngrade

@@ -35,11 +35,6 @@ const (
 	Version_3_3_17 = "3.3.17"
 	Version_3_4_3  = "3.4.3"
 	Version_3_4_13 = "3.4.13"
-	Version_3_5_0  = "3.5.0"
-	Version_3_5_1  = "3.5.1"
-	Version_3_5_3  = "3.5.3"
-	Version_3_5_4  = "3.5.4"
-	Version_3_5_6  = "3.5.6"
 	Version_3_5_7  = "3.5.7"
 )
 
@@ -52,11 +47,7 @@ var AllEtcdVersions = []string{
 	Version_3_3_17,
 	Version_3_4_3,
 	Version_3_4_13,
-	Version_3_5_0,
-	Version_3_5_1,
-	Version_3_5_3,
-	Version_3_5_4,
-	Version_3_5_6,
+	Version_3_5_7,
 }
 
 var LatestEtcdVersions = []string{
