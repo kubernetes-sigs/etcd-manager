@@ -28,6 +28,10 @@ import (
 )
 
 func TestUpgradeDowngrade(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	for _, fromVersion := range etcdversions.LatestEtcdVersions {
 		for _, toVersion := range etcdversions.LatestEtcdVersions {
 			if fromVersion == toVersion {

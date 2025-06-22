@@ -28,6 +28,10 @@ import (
 )
 
 func TestClusterDataPersists(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -86,6 +90,10 @@ func TestClusterDataPersists(t *testing.T) {
 }
 
 func TestHAReadWrite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -154,6 +162,10 @@ func TestHAReadWrite(t *testing.T) {
 
 // TestHARecovery tests that after a full shutdown of all nodes, we still have data
 func TestHARecovery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithCancel(ctx)
 

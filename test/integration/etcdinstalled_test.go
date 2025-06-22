@@ -24,6 +24,10 @@ import (
 )
 
 func TestEtcdInstalled(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	for _, etcdVersion := range etcdversions.AllEtcdVersions {
 		t.Run("etcdVersion="+etcdVersion, func(t *testing.T) {
 			{

@@ -39,6 +39,10 @@ func init() {
 }
 
 func TestClusterWithOneMember(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	for _, etcdVersion := range etcdversions.AllEtcdVersions {
 		t.Run("etcdVersion="+etcdVersion, func(t *testing.T) {
 			ctx := context.TODO()
@@ -71,6 +75,10 @@ func TestClusterWithOneMember(t *testing.T) {
 }
 
 func TestClusterWithThreeMembers(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 
@@ -101,6 +109,10 @@ func TestClusterWithThreeMembers(t *testing.T) {
 }
 
 func TestClusterExpansion(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 
@@ -153,6 +165,10 @@ func TestClusterExpansion(t *testing.T) {
 }
 
 func TestWeOnlyFormASingleCluster(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	ctx := context.TODO()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 
