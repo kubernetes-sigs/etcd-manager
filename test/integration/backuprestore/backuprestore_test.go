@@ -30,6 +30,10 @@ import (
 )
 
 func TestBackupRestore(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	for _, backupEtcdVersion := range etcdversions.LatestEtcdVersions {
 		restoreEtcdVersion := etcdversions.EtcdVersionForRestore(backupEtcdVersion)
 		t.Run("backupEtcdVersion="+backupEtcdVersion+"/restoreEtcdVersion="+restoreEtcdVersion, func(t *testing.T) {

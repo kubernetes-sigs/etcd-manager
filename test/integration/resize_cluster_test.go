@@ -28,6 +28,10 @@ import (
 )
 
 func TestResizeCluster(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
+
 	for _, etcdVersion := range etcdversions.LatestEtcdVersions {
 		t.Run("etcdVersion="+etcdVersion, func(t *testing.T) {
 			ctx := context.TODO()

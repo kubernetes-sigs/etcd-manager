@@ -57,6 +57,7 @@ var AllEtcdVersions = []string{
 	Version_3_5_3,
 	Version_3_5_4,
 	Version_3_5_6,
+	Version_3_5_7,
 }
 
 var LatestEtcdVersions = []string{
