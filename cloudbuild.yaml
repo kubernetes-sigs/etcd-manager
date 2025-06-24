@@ -10,7 +10,7 @@ steps:
   - DOCKER_REGISTRY=$_DOCKER_REGISTRY
   - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
   args:
-  - ko-push-etcd-manager-slim
+  - push-etcd-manager-slim
 - name: "mirror.gcr.io/library/golang:1.24.4-bookworm"
   id: etcd-backup-image
   entrypoint: make
@@ -21,7 +21,7 @@ steps:
   - DOCKER_REGISTRY=$_DOCKER_REGISTRY
   - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
   args:
-  - ko-push-etcd-backup
+  - push-etcd-backup
 - name: "mirror.gcr.io/library/golang:1.24.4-bookworm"
   id: etcd-dump-image
   entrypoint: make
@@ -32,18 +32,7 @@ steps:
   - DOCKER_REGISTRY=$_DOCKER_REGISTRY
   - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
   args:
-  - ko-push-etcd-dump
-- name: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
-  id: etcd-manager-legacy-image
-  env:
-  - PULL_BASE_REF=$_PULL_BASE_REF
-  # We don't pass version; we want to use our own version tagging from git
-  #- VERSION=$_GIT_TAG
-  - DOCKER_REGISTRY=$_DOCKER_REGISTRY
-  - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
-  - ARTIFACT_LOCATION=$_ARTIFACT_LOCATION
-  - INSTALL_BAZELISK=y
-  entrypoint: dev/push-etcd-manager.sh
+  - push-etcd-dump
 timeout: 1800s
 substitutions:
   _DOCKER_REGISTRY: 'us-central1-docker.pkg.dev'

@@ -1,2 +1,0 @@
-build --symlink_prefix=.bazel-
-test  --symlink_prefix=.bazel-

@@ -1,4 +1,0 @@
-build --symlink_prefix=.bazel-
-test  --symlink_prefix=.bazel-
-
-build --workspace_status_command=./tools/get_workspace_status.sh

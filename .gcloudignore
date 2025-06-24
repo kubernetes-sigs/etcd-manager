@@ -1,5 +1,3 @@
 .git
 
-bazel-*
-
 #!include:.gitignore
