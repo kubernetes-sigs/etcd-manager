@@ -188,6 +188,11 @@ download-etcd-versions:
 	dev/download-etcd.sh 3.3.17
 	dev/download-etcd.sh 3.4.3
 	dev/download-etcd.sh 3.4.13
+	dev/download-etcd.sh 3.5.0
+	dev/download-etcd.sh 3.5.1
+	dev/download-etcd.sh 3.5.3
+	dev/download-etcd.sh 3.5.4
+	dev/download-etcd.sh 3.5.6
 	dev/download-etcd.sh 3.5.7
 
 .PHONY: test-short
