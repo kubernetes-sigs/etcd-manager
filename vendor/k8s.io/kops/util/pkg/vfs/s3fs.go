@@ -77,6 +77,15 @@ func newS3Path(s3Context *S3Context, scheme string, bucket string, key string, s
 	}
 }
 
+func (p *S3Path) Region(ctx context.Context) (string, error) {
+	bucketDetails, err := p.getBucketDetails(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return bucketDetails.region, nil
+}
+
 func (p *S3Path) Path() string {
 	return p.scheme + "://" + p.bucket + "/" + p.key
 }
@@ -185,8 +194,16 @@ func (p *S3Path) RemoveAllVersions(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("error listing all versions of file %s: %v", p, err)
 		}
-		versions = append(versions, page.Versions...)
-		deleteMarkers = append(deleteMarkers, page.DeleteMarkers...)
+		for _, version := range page.Versions {
+			if aws.ToString(version.Key) == p.key {
+				versions = append(versions, version)
+			}
+		}
+		for _, marker := range page.DeleteMarkers {
+			if aws.ToString(marker.Key) == p.key {
+				deleteMarkers = append(deleteMarkers, marker)
+			}
+		}
 	}
 
 	if len(versions) == 0 && len(deleteMarkers) == 0 {
@@ -228,9 +245,12 @@ func (p *S3Path) RemoveAllVersions(ctx context.Context) error {
 
 		klog.V(8).Infof("removing %d file/marker versions\n", len(request.Delete.Objects))
 
-		_, err = client.DeleteObjects(ctx, request)
+		deleteResult, err := client.DeleteObjects(ctx, request)
 		if err != nil {
 			return fmt.Errorf("error removing %d file/marker versions: %v", len(request.Delete.Objects), err)
+		}
+		if len(deleteResult.Errors) > 0 {
+			return fmt.Errorf("error removing file/marker versions: %v", deleteResult.Errors)
 		}
 	}
 
@@ -552,13 +572,18 @@ func (p *S3Path) GetHTTPsUrl(dualstack bool) (string, error) {
 		return "", fmt.Errorf("failed to get bucket details for %q: %w", p.String(), err)
 	}
 
-	var url string
-	if dualstack {
-		url = fmt.Sprintf("https://s3.dualstack.%s.amazonaws.com/%s/%s", bucketDetails.region, bucketDetails.name, p.Key())
-	} else {
-		url = fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketDetails.name, bucketDetails.region, p.Key())
+	resolver := s3.NewDefaultEndpointResolverV2()
+	endpoint, err := resolver.ResolveEndpoint(ctx, s3.EndpointParameters{
+		Bucket:       aws.String(bucketDetails.name),
+		Region:       aws.String(bucketDetails.region),
+		UseDualStack: aws.Bool(dualstack),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve endpoint for %q: %w", p.String(), err)
 	}
-	return strings.TrimSuffix(url, "/"), nil
+
+	endpoint.URI.Path = path.Join(endpoint.URI.Path, p.Key())
+	return endpoint.URI.String(), nil
 }
 
 func (p *S3Path) IsBucketPublic(ctx context.Context) (bool, error) {
@@ -743,9 +768,13 @@ func (p *S3Path) RenderTerraform(w *terraformWriter.TerraformWriter, name string
 			Bucket:   p.Bucket(),
 			Key:      p.Key(),
 			Content:  content,
-			SSE:      &sseVal,
-			Acl:      &aclVal,
 			Provider: terraformWriter.LiteralTokens("aws", "files"),
+		}
+		if sseVal != "" {
+			tf.SSE = &sseVal
+		}
+		if aclVal != "" {
+			tf.Acl = &aclVal
 		}
 		return w.RenderResource("aws_s3_object", name, tf)
 	}

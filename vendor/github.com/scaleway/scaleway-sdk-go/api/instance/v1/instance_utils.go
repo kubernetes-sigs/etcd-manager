@@ -6,15 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/scaleway/scaleway-sdk-go/errors"
 	"github.com/scaleway/scaleway-sdk-go/internal/async"
-
-	"github.com/scaleway/scaleway-sdk-go/internal/errors"
 	"github.com/scaleway/scaleway-sdk-go/scw"
 )
 
-var (
-	resourceLock sync.Map
-)
+var resourceLock sync.Map
 
 // lockResource locks a resource from a specific resourceID
 func lockResource(resourceID string) *sync.Mutex {
@@ -53,7 +50,7 @@ func (s *API) AttachIP(req *AttachIPRequest, opts ...scw.RequestOption) (*Attach
 		Zone:   req.Zone,
 		IP:     req.IP,
 		Server: &NullableStringValue{Value: req.ServerID},
-	})
+	}, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +81,7 @@ func (s *API) DetachIP(req *DetachIPRequest, opts ...scw.RequestOption) (*Detach
 		Zone:   req.Zone,
 		IP:     req.IP,
 		Server: &NullableStringValue{Null: true},
-	})
+	}, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,28 +101,6 @@ type AttachVolumeRequest struct {
 // Deprecated by AttachServerVolumeResponse
 type AttachVolumeResponse struct {
 	Server *Server `json:"-"`
-}
-
-// volumesToVolumeTemplates converts a map of *Volume to a map of *VolumeTemplate
-// so it can be used in a UpdateServer request
-func volumesToVolumeTemplates(volumes map[string]*VolumeServer) map[string]*VolumeServerTemplate {
-	volumeTemplates := map[string]*VolumeServerTemplate{}
-	for key, volume := range volumes {
-		volumeTemplate := &VolumeServerTemplate{
-			ID: &volume.ID,
-		}
-
-		if volume.Name != "" {
-			volumeTemplate.Name = &volume.Name
-		}
-
-		if volume.VolumeType == VolumeServerVolumeTypeSbsVolume {
-			volumeTemplate.VolumeType = VolumeVolumeTypeSbsVolume
-		}
-
-		volumeTemplates[key] = volumeTemplate
-	}
-	return volumeTemplates
 }
 
 // AttachVolume attaches a volume to a server
@@ -209,12 +184,6 @@ func (s *API) DetachVolume(req *DetachVolumeRequest, opts ...scw.RequestOption) 
 // UnsafeSetTotalCount should not be used
 // Internal usage only
 func (r *ListServersResponse) UnsafeSetTotalCount(totalCount int) {
-	r.TotalCount = uint32(totalCount)
-}
-
-// UnsafeSetTotalCount should not be used
-// Internal usage only
-func (r *ListBootscriptsResponse) UnsafeSetTotalCount(totalCount int) {
 	r.TotalCount = uint32(totalCount)
 }
 
@@ -315,7 +284,6 @@ func (s *API) WaitForPrivateNIC(req *WaitForPrivateNICRequest, opts ...scw.Reque
 				Zone:         req.Zone,
 				PrivateNicID: req.PrivateNicID,
 			}, opts...)
-
 			if err != nil {
 				return nil, false, err
 			}

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	block "github.com/scaleway/scaleway-sdk-go/api/block/v1alpha1"
+	"github.com/scaleway/scaleway-sdk-go/errors"
 	"github.com/scaleway/scaleway-sdk-go/internal/async"
-	"github.com/scaleway/scaleway-sdk-go/internal/errors"
 	"github.com/scaleway/scaleway-sdk-go/scw"
 )
 
@@ -40,7 +40,6 @@ func (s *API) WaitForVolume(req *WaitForVolumeRequest, opts ...scw.RequestOption
 				VolumeID: req.VolumeID,
 				Zone:     req.Zone,
 			}, opts...)
-
 			if err != nil {
 				return nil, false, err
 			}
@@ -76,7 +75,7 @@ func (s *API) getUnknownVolume(req *getUnknownVolumeRequest, opts ...scw.Request
 	}
 
 	// Try instance API
-	if req.IsBlockVolume == nil || *req.IsBlockVolume == false {
+	if req.IsBlockVolume == nil || !*req.IsBlockVolume {
 		getVolumeResponse, err := s.GetVolume(&GetVolumeRequest{
 			Zone:     req.Zone,
 			VolumeID: req.VolumeID,
@@ -94,7 +93,7 @@ func (s *API) getUnknownVolume(req *getUnknownVolumeRequest, opts ...scw.Request
 		}
 	}
 
-	if volume.Type == "" && (req.IsBlockVolume == nil || *req.IsBlockVolume == true) {
+	if volume.Type == "" && (req.IsBlockVolume == nil || *req.IsBlockVolume) {
 		getVolumeResponse, err := block.NewAPI(s.client).GetVolume(&block.GetVolumeRequest{
 			Zone:     req.Zone,
 			VolumeID: req.VolumeID,
