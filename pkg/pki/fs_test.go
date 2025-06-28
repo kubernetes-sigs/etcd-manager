@@ -17,23 +17,33 @@ limitations under the License.
 package pki
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"encoding/pem"
+	"fmt"
+	"math/big"
 	"os"
 	"path"
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	certutil "k8s.io/client-go/util/cert"
 )
 
 func TestFSStore_LoadCA(t *testing.T) {
-	const basicCert = "-----BEGIN CERTIFICATE-----\nMIIBaDCCARKgAwIBAgIMFoq6Pex4lTCM8fOIMA0GCSqGSIb3DQEBCwUAMBUxEzAR\nBgNVBAMTCmt1YmVybmV0ZXMwHhcNMjEwNjE5MjI0MzEwWhcNMzEwNjE5MjI0MzEw\nWjAVMRMwEQYDVQQDEwprdWJlcm5ldGVzMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB\nANiW3hfHTcKnxCig+uWhpVbOfH1pANKmXVSysPKgE80QSU4tZ6m49pAEeIMsvwvD\nMaLsb2v6JvXe0qvCmueU+/sCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1Ud\nEwEB/wQFMAMBAf8wHQYDVR0OBBYEFCOW3hR7ngBsk9aUOlEznWzH494EMA0GCSqG\nSIb3DQEBCwUAA0EAVnZzkiku07kQFGAEXzWI6aZnAbzSoClYskEzCBMrOmdadjVp\nVWcz76FwFlyd5jhzOJ49eMcVusSotKv2ZGimcA==\n-----END CERTIFICATE-----"
-	const basicKey = "-----BEGIN RSA PRIVATE KEY-----\nMIIBPQIBAAJBANiW3hfHTcKnxCig+uWhpVbOfH1pANKmXVSysPKgE80QSU4tZ6m4\n9pAEeIMsvwvDMaLsb2v6JvXe0qvCmueU+/sCAwEAAQJBAKt/gmpHqP3qA3u8RA5R\n2W6L360Z2Mnza1FmkI/9StCCkJGjuE5yDhxU4JcVnFyX/nMxm2ockEEQDqRSu7Oo\nxTECIQD2QsUsgFL4FnXWzTclySJ6ajE4Cte3gSDOIvyMNMireQIhAOEnsV8UaSI+\nZyL7NMLzMPLCgtsrPnlamr8gdrEHf9ITAiEAxCCLbpTI/4LL2QZZrINTLVGT34Fr\nKl/yI5pjrrp/M2kCIQDfOktQyRuzJ8t5kzWsUxCkntS+FxHJn1rtQ3Jp8dV4oQIh\nAOyiVWDyLZJvg7Y24Ycmp86BZjM9Wk/BfWpBXKnl9iDY\n-----END RSA PRIVATE KEY-----"
-	const secondaryCert = "-----BEGIN CERTIFICATE-----\nMIIBgjCCASygAwIBAgIMFo3gINaZLHjisEcbMA0GCSqGSIb3DQEBCwUAMCIxIDAe\nBgNVBAMTF2FwaXNlcnZlci1hZ2dyZWdhdG9yLWNhMB4XDTIxMDYzMDA0NTExMloX\nDTMxMDYzMDA0NTExMlowIjEgMB4GA1UEAxMXYXBpc2VydmVyLWFnZ3JlZ2F0b3It\nY2EwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAyyE71AOU3go5XFegLQ6fidI0LhhM\nx7CzpTzh2xWKcHUfbNI7itgJvC/+GlyG5W+DF5V7ba0IJiQLsFve0oLdewIDAQAB\no0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU\nALfqF5ZmfqvqORuJIFilZYKF3d0wDQYJKoZIhvcNAQELBQADQQAHAomFKsF4jvYX\nWM/UzQXDj9nSAFTf8dBPCXyZZNotsOH7+P6W4mMiuVs8bAuGiXGUdbsQ2lpiT/Rk\nCzMeMdr4\n-----END CERTIFICATE-----"
-	const secondaryKey = "-----BEGIN RSA PRIVATE KEY-----\nMIIBOwIBAAJBAMshO9QDlN4KOVxXoC0On4nSNC4YTMews6U84dsVinB1H2zSO4rY\nCbwv/hpchuVvgxeVe22tCCYkC7Bb3tKC3XsCAwEAAQJAe4xCLGjlQcvsKYsuZFlR\nle0hSawD/y0thuIp6SwH4O92AOsfrWDdiWIVCP6S47oBv351BOcoPbOjxfMTN+f6\naQIhAPIfBCHL/GecX1IVyitI1ueG1z0n5DDOKQAxmxTg82SnAiEA1sYK+vXMIV/e\nCl/CHxKwu7f+ufh1bV0OFyd+eI2+Vw0CICs6eG1kUzNYivhH5ammvp/lxkYn+ijw\nlgdv0+V9aFdfAiEAsTUytiK8zQTGthSQnQbU3+5OtK82ZIgVKjGh/mIlnLkCIQC1\neG3yBXM7/cxw1doWZ7AzMncufx9R8Q2Hblm80UrpaQ==\n-----END RSA PRIVATE KEY-----"
+	basicCert, basicKey, err := generateCertKey("kubernetes")
+	if err != nil {
+		t.Fatalf("failed to generate cert/key: %v", err)
+	}
+	secondaryCert, secondaryKey, err := generateCertKey("apiserver-aggregator-ca")
+	if err != nil {
+		t.Fatalf("failed to generate cert/key: %v", err)
+	}
 
 	tests := []struct {
 		name           string
@@ -48,21 +58,21 @@ func TestFSStore_LoadCA(t *testing.T) {
 			cert:           basicCert,
 			key:            basicKey,
 			expectedPool:   "CN=kubernetes",
-			expectedBundle: basicCert + "\n",
+			expectedBundle: basicCert,
 		},
 		{
 			name:           "with_secondary",
-			cert:           basicCert + "\n" + secondaryCert,
+			cert:           basicCert + secondaryCert,
 			key:            basicKey,
 			expectedPool:   "CN=apiserver-aggregator-ca\nCN=kubernetes",
-			expectedBundle: basicCert + "\n" + secondaryCert + "\n",
+			expectedBundle: basicCert + secondaryCert,
 		},
 		{
 			name:           "using_secondary",
-			cert:           basicCert + "\n" + secondaryCert,
+			cert:           basicCert + secondaryCert,
 			key:            secondaryKey,
 			expectedPool:   "CN=apiserver-aggregator-ca\nCN=kubernetes",
-			expectedBundle: basicCert + "\n" + secondaryCert + "\n",
+			expectedBundle: basicCert + secondaryCert,
 		},
 		{
 			name:        "badcert",
@@ -163,4 +173,39 @@ func TestFSStore_LoadCA(t *testing.T) {
 			}
 		})
 	}
+}
+
+func generateCertKey(commonName string) (string, string, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate key: %w", err)
+	}
+	keyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(key),
+		},
+	)
+
+	basicCaTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: commonName},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(10 * 365 * 24 * time.Hour),
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	cert, err := x509.CreateCertificate(rand.Reader, basicCaTemplate, basicCaTemplate, &key.PublicKey, key)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate certificate: %w", err)
+	}
+	certPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert,
+		},
+	)
+
+	return string(certPEM), string(keyPEM), nil
 }
