@@ -1,9 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "exported",
-    srcs = ["exported.go"],
-    importmap = "sigs.k8s.io/etcd-manager/vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/exported",
-    importpath = "github.com/AzureAD/microsoft-authentication-library-for-go/apps/internal/exported",
-    visibility = ["//vendor/github.com/AzureAD/microsoft-authentication-library-for-go/apps:__subpackages__"],
-)
