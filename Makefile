@@ -91,11 +91,27 @@ staticcheck-all:
 staticcheck-working:
 	go list ./... | grep -v "etcd-manager/pkg/[cepv]" | xargs go run honnef.co/go/tools/cmd/staticcheck@v0.2.1
 
+.PHONY: images-amd64
+images-amd64: export-etcd-manager-ctl-amd64 export-etcd-manager-slim-amd64 export-etcd-backup-amd64 export-etcd-dump-amd64
+
+.PHONY: images-arm64
+images-arm64: export-etcd-manager-ctl-arm64 export-etcd-manager-slim-arm64 export-etcd-backup-arm64 export-etcd-dump-arm64
+
 .PHONY: images
-images: export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64 export-etcd-backup-amd64 export-etcd-backup-arm64 export-etcd-dump-amd64 export-etcd-dump-arm64
+images: images-amd64 images-arm64
 
 .PHONY: push
 push: push-etcd-manager-slim push-etcd-backup push-etcd-backup push-etcd-dump
+
+.PHONY: export-etcd-manager-ctl-amd64 export-etcd-manager-ctl-arm64
+export-etcd-manager-ctl-amd64 export-etcd-manager-ctl-arm64: export-etcd-manager-ctl-%:
+	mkdir -p dist
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-ctl-$*.tar ./cmd/etcd-manager/
+	gzip -f dist/etcd-manager-ctl-$*.tar
+
+.PHONY: push-etcd-manager-ctl
+push-etcd-manager-ctl:
+	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager-ctl/
 
 .PHONY: export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64
 export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64: export-etcd-manager-slim-%:
