@@ -1,0 +1,8 @@
+defaultBaseImage: debian:12-slim
+# https://pkg.go.dev/cmd/link
+# -s: omit symbol/debug info
+# -w: omit DWARF symbol table
+# -X importpath.name=value: sets name to value
+builds:
+- ldflags:
+  - -s -w

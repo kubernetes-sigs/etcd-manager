@@ -106,17 +106,17 @@ push: push-etcd-manager-slim push-etcd-backup push-etcd-backup push-etcd-dump
 .PHONY: export-etcd-manager-ctl-amd64 export-etcd-manager-ctl-arm64
 export-etcd-manager-ctl-amd64 export-etcd-manager-ctl-arm64: export-etcd-manager-ctl-%:
 	mkdir -p dist
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-ctl-$*.tar ./cmd/etcd-manager/
+	KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-ctl-$*.tar ./cmd/etcd-manager/
 	gzip -f dist/etcd-manager-ctl-$*.tar
 
 .PHONY: push-etcd-manager-ctl
 push-etcd-manager-ctl:
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager-ctl/
+	KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-ctl" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager-ctl/
 
 .PHONY: export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64
 export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64: export-etcd-manager-slim-%:
 	mkdir -p dist
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-slim-$*.tar ./cmd/etcd-manager/
+	KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-manager-slim-$*.tar ./cmd/etcd-manager/
 	gzip -f dist/etcd-manager-slim-$*.tar
 
 .PHONY: push-etcd-manager-slim
@@ -126,20 +126,20 @@ push-etcd-manager-slim: push-etcd-manager-ctl
 .PHONY: export-etcd-backup-amd64 export-etcd-backup-arm64
 export-etcd-backup-amd64 export-etcd-backup-arm64: export-etcd-backup-%:
 	mkdir -p dist
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-backup-$*.tar ./cmd/etcd-backup/
+	KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-backup-$*.tar ./cmd/etcd-backup/
 	gzip -f dist/etcd-backup-$*.tar
 
 .PHONY: push-etcd-backup
 push-etcd-backup:
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-backup/
+	KO_DOCKER_REPO="${IMAGE_BASE}etcd-backup" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-backup/
 
 .PHONY: export-etcd-dump-amd64 export-etcd-dump-arm64
 export-etcd-dump-amd64 export-etcd-dump-arm64: export-etcd-dump-%:
 	mkdir -p dist
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-dump-$*.tar ./cmd/etcd-dump/
+	KO_DOCKER_REPO="registry.k8s.io/etcd-manager/etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/$* -B --push=false --tarball=dist/etcd-dump-$*.tar ./cmd/etcd-dump/
 	gzip -f dist/etcd-dump-$*.tar
 
 .PHONY: push-etcd-dump
 push-etcd-dump:
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-dump/
+	KO_DOCKER_REPO="${IMAGE_BASE}etcd-dump" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-dump/
 
