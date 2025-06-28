@@ -128,7 +128,7 @@ func TestUpgradeDowngrade(t *testing.T) {
 				}
 
 				// Downgrade back to original version
-				klog.Infof("downgrading to " + fromVersion)
+				klog.Info("downgrading to " + fromVersion)
 				{
 					h.SetClusterSpec(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: fromVersion})
 					h.InvalidateControlStore(n1, n2, n3)

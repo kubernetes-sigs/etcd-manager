@@ -14,10 +14,10 @@ import (
 // Creates an EC2 Instance Connect Endpoint.
 //
 // An EC2 Instance Connect Endpoint allows you to connect to an instance, without
-// requiring the instance to have a public IPv4 address. For more information, see [Connect to your instances without requiring a public IPv4 address using EC2 Instance Connect Endpoint]
+// requiring the instance to have a public IPv4 address. For more information, see [Connect to your instances using EC2 Instance Connect Endpoint]
 // in the Amazon EC2 User Guide.
 //
-// [Connect to your instances without requiring a public IPv4 address using EC2 Instance Connect Endpoint]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html
+// [Connect to your instances using EC2 Instance Connect Endpoint]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html
 func (c *Client) CreateInstanceConnectEndpoint(ctx context.Context, params *CreateInstanceConnectEndpointInput, optFns ...func(*Options)) (*CreateInstanceConnectEndpointOutput, error) {
 	if params == nil {
 		params = &CreateInstanceConnectEndpointInput{}
@@ -50,15 +50,14 @@ type CreateInstanceConnectEndpointInput struct {
 	// UnauthorizedOperation .
 	DryRun *bool
 
-	// Indicates whether your client's IP address is preserved as the source. The
-	// value is true or false .
+	// Indicates whether the client IP address is preserved as the source. The
+	// following are the possible values.
 	//
-	//   - If true , your client's IP address is used when you connect to a resource.
+	//   - true - Use the client IP address as the source.
 	//
-	//   - If false , the elastic network interface IP address is used when you connect
-	//   to a resource.
+	//   - false - Use the network interface IP address as the source.
 	//
-	// Default: true
+	// Default: false
 	PreserveClientIp *bool
 
 	// One or more security groups to associate with the endpoint. If you don't
@@ -130,6 +129,9 @@ func (c *Client) addOperationCreateInstanceConnectEndpointMiddlewares(stack *mid
 	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
+	if err = addSpanRetryLoop(stack, options); err != nil {
+		return err
+	}
 	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
@@ -146,6 +148,9 @@ func (c *Client) addOperationCreateInstanceConnectEndpointMiddlewares(stack *mid
 		return err
 	}
 	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateInstanceConnectEndpointMiddleware(stack, options); err != nil {
@@ -170,6 +175,18 @@ func (c *Client) addOperationCreateInstanceConnectEndpointMiddlewares(stack *mid
 		return err
 	}
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
