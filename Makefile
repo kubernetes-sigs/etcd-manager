@@ -120,8 +120,8 @@ export-etcd-manager-slim-amd64 export-etcd-manager-slim-arm64: export-etcd-manag
 	gzip -f dist/etcd-manager-slim-$*.tar
 
 .PHONY: push-etcd-manager-slim
-push-etcd-manager-slim:
-	KO_DEFAULTBASEIMAGE="debian:12-slim" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager/
+push-etcd-manager-slim: push-etcd-manager-ctl
+	KO_DEFAULTBASEIMAGE="${IMAGE_BASE}etcd-manager-ctl:${STABLE_DOCKER_TAG}" KO_DOCKER_REPO="${IMAGE_BASE}etcd-manager-slim" ${KO} build --tags ${STABLE_DOCKER_TAG} --platform=linux/amd64,linux/arm64 --bare ./cmd/etcd-manager/
 
 .PHONY: export-etcd-backup-amd64 export-etcd-backup-arm64
 export-etcd-backup-amd64 export-etcd-backup-arm64: export-etcd-backup-%:
