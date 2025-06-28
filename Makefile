@@ -23,6 +23,7 @@ KO=go run github.com/google/ko@v0.18.0
 all: test
 
 .PHONY: test
+test:
 	go test -v -short ./...
 
 # Must match AllEtcdVersions in pkg/etcdversions/mappings.go
