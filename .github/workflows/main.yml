@@ -13,7 +13,7 @@ jobs:
         fetch-tags: 'true'
     - name: Build etcd-manager-slim
       run: |
-        make ko-dist
+        make images
 
   test:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Run tests
       run: |
-        make test-short
+        make test
 
   test-upgradedowngrade:
     runs-on: ubuntu-latest

@@ -4,14 +4,6 @@
 .vscode/
 *~
 
-# Bazel stuff
-bazel-bin
-bazel-etcd-manager
-bazel-genfiles
-bazel-out
-bazel-testlogs
-.bazel-*
-
 # We often create some local symlinks
 /etcd-manager
 /etcd-manager-ctl
