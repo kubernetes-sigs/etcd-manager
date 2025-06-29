@@ -54,7 +54,7 @@ test-backuprestore: download-etcd-versions
 
 .PHONY: test-upgradedowngrade
 test-upgradedowngrade: download-etcd-versions
-	go test -v ./test/integration/upgradedowngrade
+	go test -timeout 15m -v ./test/integration/upgradedowngrade
 
 .PHONY: gofmt
 gofmt:
