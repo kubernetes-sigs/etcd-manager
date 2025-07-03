@@ -1,4 +1,4 @@
-defaultBaseImage: debian:12-slim
+defaultBaseImage: gcr.io/k8s-staging-build-image/debian-base:bookworm-v1.0.5
 # https://pkg.go.dev/cmd/link
 # -s: omit symbol/debug info
 # -w: omit DWARF symbol table
