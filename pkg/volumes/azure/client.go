@@ -19,15 +19,18 @@ package azure
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	network "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 )
 
 type managedDisk struct {
@@ -85,7 +88,7 @@ type client struct {
 func newClient() (*client, error) {
 	m, err := queryInstanceMetadata()
 	if err != nil {
-		return nil, fmt.Errorf("error querying instance metadata: %s", err)
+		return nil, fmt.Errorf("error querying instance metadata: %w", err)
 	}
 	if m.Compute.SubscriptionID == "" {
 		return nil, fmt.Errorf("empty subscription name")
@@ -94,29 +97,37 @@ func newClient() (*client, error) {
 		return nil, fmt.Errorf("empty resource group name")
 	}
 
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating an authorizer: %s", err)
+		return nil, fmt.Errorf("creating identity: %w", err)
 	}
 
-	scaleSets := compute.NewVirtualMachineScaleSetsClient(m.Compute.SubscriptionID)
-	scaleSets.Authorizer = authorizer
+	scaleSets, err := compute.NewVirtualMachineScaleSetsClient(m.Compute.SubscriptionID, cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating vmss client: %w", err)
+	}
 
-	scaleSetVMs := compute.NewVirtualMachineScaleSetVMsClient(m.Compute.SubscriptionID)
-	scaleSetVMs.Authorizer = authorizer
+	scaleSetVMs, err := compute.NewVirtualMachineScaleSetVMsClient(m.Compute.SubscriptionID, cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating vmssvm client: %w", err)
+	}
 
-	disks := compute.NewDisksClient(m.Compute.SubscriptionID)
-	disks.Authorizer = authorizer
+	disks, err := compute.NewDisksClient(m.Compute.SubscriptionID, cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating disks client: %w", err)
+	}
 
-	networkInterfaces := network.NewInterfacesClient(m.Compute.SubscriptionID)
-	networkInterfaces.Authorizer = authorizer
+	networkInterfaces, err := network.NewInterfacesClient(m.Compute.SubscriptionID, cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating network interfaces client: %w", err)
+	}
 
 	return &client{
 		metadata:          m,
-		scaleSets:         &scaleSets,
-		scaleSetVMs:       &scaleSetVMs,
-		disks:             &disks,
-		networkInterfaces: &networkInterfaces,
+		scaleSets:         scaleSets,
+		scaleSetVMs:       scaleSetVMs,
+		disks:             disks,
+		networkInterfaces: networkInterfaces,
 	}, nil
 }
 
@@ -144,7 +155,7 @@ func (c *client) dataDisks() []*dataDisk {
 func (c *client) refreshMetadata() error {
 	m, err := queryInstanceMetadata()
 	if err != nil {
-		return fmt.Errorf("error querying instance metadata: %s", err)
+		return fmt.Errorf("error querying instance metadata: %w", err)
 	}
 	c.metadata = m
 	return nil
@@ -164,54 +175,67 @@ func (c *client) localIP() net.IP {
 	return nil
 }
 
-func (c *client) listVMScaleSetVMs(ctx context.Context) ([]compute.VirtualMachineScaleSetVM, error) {
-	var l []compute.VirtualMachineScaleSetVM
-	for iter, err := c.scaleSetVMs.ListComplete(ctx, c.resourceGroupName(), c.vmScaleSetName(), "" /* filter */, "" /* selectParameter */, "" /* expand */); iter.NotDone(); err = iter.Next() {
+func (c *client) listVMScaleSetVMs(ctx context.Context) ([]*compute.VirtualMachineScaleSetVM, error) {
+	var l []*compute.VirtualMachineScaleSetVM
+	pager := c.scaleSetVMs.NewListPager(c.resourceGroupName(), c.vmScaleSetName(), nil)
+	for pager.More() {
+		resp, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			var respErr *azcore.ResponseError
+			if errors.As(err, &respErr) && respErr.ErrorCode == "ResourceGroupNotFound" {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("listing VMSSs: %w", err)
 		}
-		l = append(l, iter.Value())
+		l = append(l, resp.Value...)
 	}
 	return l, nil
 }
 
 func (c *client) getVMScaleSetVM(ctx context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error) {
-	inst, err := c.scaleSetVMs.Get(ctx, c.resourceGroupName(), c.vmScaleSetName(), instanceID, compute.InstanceView)
-	if err != nil {
-		return nil, err
+	opts := &compute.VirtualMachineScaleSetVMsClientGetOptions{
+		Expand: to.Ptr(compute.InstanceViewTypesInstanceView),
 	}
-	return &inst, nil
+	inst, err := c.scaleSetVMs.Get(ctx, c.resourceGroupName(), c.vmScaleSetName(), instanceID, opts)
+	if err != nil {
+		return nil, fmt.Errorf("getting VMSS VMs info: %w", err)
+	}
+	return &inst.VirtualMachineScaleSetVM, nil
 }
 
 func (c *client) updateVMScaleSetVM(ctx context.Context, instanceID string, parameters compute.VirtualMachineScaleSetVM) error {
-	future, err := c.scaleSetVMs.Update(ctx, c.resourceGroupName(), c.vmScaleSetName(), instanceID, parameters)
+	future, err := c.scaleSetVMs.BeginUpdate(ctx, c.resourceGroupName(), c.vmScaleSetName(), instanceID, parameters, nil)
 	if err != nil {
-		return fmt.Errorf("error updating VM Scale Set VM: %s", err)
+		return fmt.Errorf("error updating VM Scale Set VM: %w", err)
 	}
-	if err := future.WaitForCompletionRef(ctx, c.scaleSetVMs.Client); err != nil {
-		return fmt.Errorf("error waiting for VM Scale Set VM update completion: %s", err)
+	if _, err := future.PollUntilDone(ctx, nil); err != nil {
+		return fmt.Errorf("error waiting for VM Scale Set VM update completion: %w", err)
 	}
 	return nil
 }
 
-func (c *client) listDisks(ctx context.Context) ([]compute.Disk, error) {
-	var l []compute.Disk
-	for iter, err := c.disks.ListByResourceGroupComplete(ctx, c.resourceGroupName()); iter.NotDone(); err = iter.Next() {
+func (c *client) listDisks(ctx context.Context) ([]*compute.Disk, error) {
+	var l []*compute.Disk
+	pager := c.disks.NewListPager(nil)
+	for pager.More() {
+		resp, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("listing disks: %w", err)
 		}
-		l = append(l, iter.Value())
+		l = append(l, resp.Value...)
 	}
 	return l, nil
 }
 
-func (c *client) listVMSSNetworkInterfaces(ctx context.Context) ([]network.Interface, error) {
-	var l []network.Interface
-	for iter, err := c.networkInterfaces.ListVirtualMachineScaleSetNetworkInterfacesComplete(ctx, c.resourceGroupName(), c.vmScaleSetName()); iter.NotDone(); err = iter.Next() {
+func (c *client) listVMSSNetworkInterfaces(ctx context.Context) ([]*network.Interface, error) {
+	var l []*network.Interface
+	pager := c.networkInterfaces.NewListVirtualMachineScaleSetNetworkInterfacesPager(c.resourceGroupName(), c.vmScaleSetName(), nil)
+	for pager.More() {
+		resp, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("listing network interfaces: %w", err)
 		}
-		l = append(l, iter.Value())
+		l = append(l, resp.Value...)
 	}
 	return l, nil
 }
@@ -222,7 +246,7 @@ func queryInstanceMetadata() (*instanceMetadata, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://169.254.169.254/metadata/instance", nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating a new request: %s", err)
+		return nil, fmt.Errorf("error creating a new request: %w", err)
 	}
 	req.Header.Add("Metadata", "True")
 
@@ -233,24 +257,24 @@ func queryInstanceMetadata() (*instanceMetadata, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending request to the metadata server: %s", err)
+		return nil, fmt.Errorf("error sending request to the metadata server: %w", err)
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading a response from the metadata server: %s", err)
+		return nil, fmt.Errorf("error reading a response from the metadata server: %w", err)
 	}
 	metadata, err := unmarshalInstanceMetadata(body)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling metadata: %s", err)
+		return nil, fmt.Errorf("error unmarshalling metadata: %w", err)
 	}
 	return metadata, nil
 }
 
 func unmarshalInstanceMetadata(data []byte) (*instanceMetadata, error) {
 	m := &instanceMetadata{}
-	if err := json.Unmarshal(data, &m); err != nil {
+	if err := json.Unmarshal(data, m); err != nil {
 		return nil, err
 	}
 	return m, nil

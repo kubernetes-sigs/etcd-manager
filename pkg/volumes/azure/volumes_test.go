@@ -21,8 +21,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
@@ -33,30 +33,30 @@ func TestFindVolumes(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	client.disks = []compute.Disk{
+	client.disks = []*compute.Disk{
 		{
-			Name: to.StringPtr("name0"),
-			ID:   to.StringPtr("id0"),
-			DiskProperties: &compute.DiskProperties{
-				DiskState: compute.DiskState("state"),
+			Name: to.Ptr("name0"),
+			ID:   to.Ptr("id0"),
+			Properties: &compute.DiskProperties{
+				DiskState: to.Ptr(compute.DiskState("state")),
 			},
-			ManagedBy: to.StringPtr(client.name()),
+			ManagedBy: to.Ptr(client.name()),
 		},
 		{
 			// Attached to an other VM.
-			Name: to.StringPtr("name1"),
-			ID:   to.StringPtr("id1"),
-			DiskProperties: &compute.DiskProperties{
-				DiskState: compute.DiskState("state"),
+			Name: to.Ptr("name1"),
+			ID:   to.Ptr("id1"),
+			Properties: &compute.DiskProperties{
+				DiskState: to.Ptr(compute.DiskState("state")),
 			},
-			ManagedBy: to.StringPtr("other"),
+			ManagedBy: to.Ptr("other"),
 		},
 		{
 			// Unmanaged disk.
-			Name: to.StringPtr("name2"),
-			ID:   to.StringPtr("id2"),
-			DiskProperties: &compute.DiskProperties{
-				DiskState: compute.DiskState("state"),
+			Name: to.Ptr("name2"),
+			ID:   to.Ptr("id2"),
+			Properties: &compute.DiskProperties{
+				DiskState: to.Ptr(compute.DiskState("state")),
 			},
 		},
 	}
@@ -125,10 +125,10 @@ func TestAttachVolume(t *testing.T) {
 		},
 	}
 
-	client.vms["0"] = compute.VirtualMachineScaleSetVM{
-		VirtualMachineScaleSetVMProperties: &compute.VirtualMachineScaleSetVMProperties{
+	client.vms["0"] = &compute.VirtualMachineScaleSetVM{
+		Properties: &compute.VirtualMachineScaleSetVMProperties{
 			StorageProfile: &compute.StorageProfile{
-				DataDisks: &[]compute.DataDisk{},
+				DataDisks: []*compute.DataDisk{},
 			},
 		},
 	}
@@ -137,15 +137,15 @@ func TestAttachVolume(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	actual := *client.vms["0"].StorageProfile.DataDisks
-	expected := []compute.DataDisk{
+	actual := client.vms["0"].Properties.StorageProfile.DataDisks
+	expected := []*compute.DataDisk{
 		{
-			Lun:          to.Int32Ptr(0),
-			Name:         to.StringPtr("name"),
-			CreateOption: compute.DiskCreateOptionTypesAttach,
+			Lun:          to.Ptr(int32(0)),
+			Name:         to.Ptr("name"),
+			CreateOption: to.Ptr(compute.DiskCreateOptionTypesAttach),
 			ManagedDisk: &compute.ManagedDiskParameters{
-				StorageAccountType: compute.StorageAccountTypesStandardLRS,
-				ID:                 to.StringPtr("id"),
+				StorageAccountType: to.Ptr(compute.StorageAccountTypesStandardSSDLRS),
+				ID:                 to.Ptr("id"),
 			},
 		},
 	}
@@ -171,21 +171,21 @@ func TestIsDiskForCluster(t *testing.T) {
 		},
 		{
 			tags: map[string]*string{
-				"k0":      to.StringPtr("any value"),
-				"k1":      to.StringPtr("v1"),
-				"any key": to.StringPtr("any value"),
+				"k0":      to.Ptr("any value"),
+				"k1":      to.Ptr("v1"),
+				"any key": to.Ptr("any value"),
 			},
 			result: true,
 		},
 		{
 			tags: map[string]*string{
-				"k0": to.StringPtr("any value"),
+				"k0": to.Ptr("any value"),
 			},
 			result: false,
 		},
 		{
 			tags: map[string]*string{
-				"k1": to.StringPtr("v2"),
+				"k1": to.Ptr("v2"),
 			},
 			result: false,
 		},
@@ -224,14 +224,14 @@ func TestExtractEtcdName(t *testing.T) {
 		{
 			nameTag: "nameTag",
 			tags: map[string]*string{
-				"nameTag": to.StringPtr(""),
+				"nameTag": to.Ptr(""),
 			},
 			etcdName: diskName,
 		},
 		{
 			nameTag: "nameTag",
 			tags: map[string]*string{
-				"nameTag": to.StringPtr("etcd_name/members"),
+				"nameTag": to.Ptr("etcd_name/members"),
 			},
 			etcdName: clusterName + "-" + "etcd_name",
 		},
@@ -243,7 +243,7 @@ func TestExtractEtcdName(t *testing.T) {
 				t.Fatalf("unexpected error %s", err)
 			}
 			d := &compute.Disk{
-				Name: to.StringPtr(diskName),
+				Name: to.Ptr(diskName),
 				Tags: tc.tags,
 			}
 			if n := a.extractEtcdName(d); n != tc.etcdName {
@@ -255,7 +255,7 @@ func TestExtractEtcdName(t *testing.T) {
 
 func TestFindAvailableLun(t *testing.T) {
 	testCases := []struct {
-		dataDisks []compute.DataDisk
+		dataDisks []*compute.DataDisk
 		lun       int32
 	}{
 		{
@@ -263,31 +263,31 @@ func TestFindAvailableLun(t *testing.T) {
 			lun:       0,
 		},
 		{
-			dataDisks: []compute.DataDisk{
+			dataDisks: []*compute.DataDisk{
 				{
-					Lun: to.Int32Ptr(0),
+					Lun: to.Ptr(int32(0)),
 				},
 			},
 			lun: 1,
 		},
 		{
-			dataDisks: []compute.DataDisk{
+			dataDisks: []*compute.DataDisk{
 				{
-					Lun: to.Int32Ptr(0),
+					Lun: to.Ptr(int32(0)),
 				},
 				{
-					Lun: to.Int32Ptr(1),
+					Lun: to.Ptr(int32(1)),
 				},
 			},
 			lun: 2,
 		},
 		{
-			dataDisks: []compute.DataDisk{
+			dataDisks: []*compute.DataDisk{
 				{
-					Lun: to.Int32Ptr(1),
+					Lun: to.Ptr(int32(1)),
 				},
 				{
-					Lun: to.Int32Ptr(3),
+					Lun: to.Ptr(int32(3)),
 				},
 			},
 			lun: 4,
@@ -297,10 +297,10 @@ func TestFindAvailableLun(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
 			client := newMockClient()
-			client.vms[client.vmScaleSetInstanceID()] = compute.VirtualMachineScaleSetVM{
-				VirtualMachineScaleSetVMProperties: &compute.VirtualMachineScaleSetVMProperties{
+			client.vms[client.vmScaleSetInstanceID()] = &compute.VirtualMachineScaleSetVM{
+				Properties: &compute.VirtualMachineScaleSetVMProperties{
 					StorageProfile: &compute.StorageProfile{
-						DataDisks: &tc.dataDisks,
+						DataDisks: tc.dataDisks,
 					},
 				},
 			}
