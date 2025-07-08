@@ -30,7 +30,7 @@ var _ discovery.Interface = &AzureVolumes{}
 func (a *AzureVolumes) Poll() (map[string]discovery.Node, error) {
 	vs, err := a.FindVolumes()
 	if err != nil {
-		return nil, fmt.Errorf("error finding volumes: %s", err)
+		return nil, fmt.Errorf("error finding volumes: %w", err)
 	}
 
 	instanceToVolumeMap := map[string]*volumes.Volume{}
@@ -47,18 +47,18 @@ func (a *AzureVolumes) Poll() (map[string]discovery.Node, error) {
 	ctx := context.TODO()
 	vms, err := a.client.listVMScaleSetVMs(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error listing VM Scale Set VMs: %s", err)
+		return nil, fmt.Errorf("error listing VM Scale Set VMs: %w", err)
 	}
 
 	ifaces, err := a.client.listVMSSNetworkInterfaces(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error listing network interfaces: %s", err)
+		return nil, fmt.Errorf("error listing network interfaces: %w", err)
 	}
 	endpointsByVMID := map[string][]discovery.NodeEndpoint{}
 	for _, iface := range ifaces {
-		vmID := *iface.VirtualMachine.ID
-		for _, i := range *iface.IPConfigurations {
-			ep := discovery.NodeEndpoint{IP: *i.PrivateIPAddress}
+		vmID := *iface.Properties.VirtualMachine.ID
+		for _, i := range iface.Properties.IPConfigurations {
+			ep := discovery.NodeEndpoint{IP: *i.Properties.PrivateIPAddress}
 			endpointsByVMID[vmID] = append(endpointsByVMID[vmID], ep)
 		}
 	}

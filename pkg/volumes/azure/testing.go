@@ -20,22 +20,22 @@ import (
 	"context"
 	"net"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network"
+	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	network "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 )
 
 type mockClient struct {
 	dDisks []*dataDisk
-	vms    map[string]compute.VirtualMachineScaleSetVM
-	disks  []compute.Disk
-	ifaces []network.Interface
+	vms    map[string]*compute.VirtualMachineScaleSetVM
+	disks  []*compute.Disk
+	ifaces []*network.Interface
 }
 
 var _ clientInterface = &mockClient{}
 
 func newMockClient() *mockClient {
 	return &mockClient{
-		vms: map[string]compute.VirtualMachineScaleSetVM{},
+		vms: map[string]*compute.VirtualMachineScaleSetVM{},
 	}
 }
 
@@ -59,27 +59,27 @@ func (c *mockClient) localIP() net.IP {
 	return net.ParseIP("10.0.0.1")
 }
 
-func (c *mockClient) listVMScaleSetVMs(ctx context.Context) ([]compute.VirtualMachineScaleSetVM, error) {
-	var l []compute.VirtualMachineScaleSetVM
+func (c *mockClient) listVMScaleSetVMs(_ context.Context) ([]*compute.VirtualMachineScaleSetVM, error) {
+	var l []*compute.VirtualMachineScaleSetVM
 	for _, v := range c.vms {
 		l = append(l, v)
 	}
 	return l, nil
 }
 
-func (c *mockClient) getVMScaleSetVM(ctx context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error) {
+func (c *mockClient) getVMScaleSetVM(_ context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error) {
 	vm := c.vms[instanceID]
-	return &vm, nil
+	return vm, nil
 }
-func (c *mockClient) updateVMScaleSetVM(ctx context.Context, instanceID string, parameters compute.VirtualMachineScaleSetVM) error {
-	c.vms[instanceID] = parameters
+func (c *mockClient) updateVMScaleSetVM(_ context.Context, instanceID string, parameters compute.VirtualMachineScaleSetVM) error {
+	c.vms[instanceID] = &parameters
 	return nil
 }
 
-func (c *mockClient) listDisks(ctx context.Context) ([]compute.Disk, error) {
+func (c *mockClient) listDisks(_ context.Context) ([]*compute.Disk, error) {
 	return c.disks, nil
 }
 
-func (c *mockClient) listVMSSNetworkInterfaces(ctx context.Context) ([]network.Interface, error) {
+func (c *mockClient) listVMSSNetworkInterfaces(_ context.Context) ([]*network.Interface, error) {
 	return c.ifaces, nil
 }

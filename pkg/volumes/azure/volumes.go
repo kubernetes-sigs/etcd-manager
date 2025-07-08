@@ -24,9 +24,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-06-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	network "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
@@ -38,11 +38,11 @@ type clientInterface interface {
 	refreshMetadata() error
 	localIP() net.IP
 
-	listVMScaleSetVMs(ctx context.Context) ([]compute.VirtualMachineScaleSetVM, error)
+	listVMScaleSetVMs(ctx context.Context) ([]*compute.VirtualMachineScaleSetVM, error)
 	getVMScaleSetVM(ctx context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error)
 	updateVMScaleSetVM(ctx context.Context, instanceID string, parameters compute.VirtualMachineScaleSetVM) error
-	listDisks(ctx context.Context) ([]compute.Disk, error)
-	listVMSSNetworkInterfaces(ctx context.Context) ([]network.Interface, error)
+	listDisks(ctx context.Context) ([]*compute.Disk, error)
+	listVMSSNetworkInterfaces(ctx context.Context) ([]*network.Interface, error)
 }
 
 var _ clientInterface = &client{}
@@ -74,7 +74,7 @@ var _ volumes.Volumes = &AzureVolumes{}
 func NewAzureVolumes(clusterName string, volumeTags []string, nameTag string) (*AzureVolumes, error) {
 	client, err := newClient()
 	if err != nil {
-		return nil, fmt.Errorf("error creating a new Azure client: %s", err)
+		return nil, fmt.Errorf("error creating a new Azure client: %w", err)
 	}
 	return newAzureVolumes(clusterName, volumeTags, nameTag, client)
 }
@@ -120,25 +120,25 @@ func (a *AzureVolumes) MyIP() (string, error) {
 func (a *AzureVolumes) FindVolumes() ([]*volumes.Volume, error) {
 	disks, err := a.client.listDisks(context.TODO())
 	if err != nil {
-		return nil, fmt.Errorf("error listing disks: %s", err)
+		return nil, fmt.Errorf("error listing disks: %w", err)
 	}
 
 	// Query instance metadata again before checking the status of attached data disks.
 	if err := a.client.refreshMetadata(); err != nil {
-		return nil, fmt.Errorf("error refreshling metadata: %s", err)
+		return nil, fmt.Errorf("error refreshling metadata: %w", err)
 	}
 
 	var vs []*volumes.Volume
 	for _, disk := range disks {
-		if !a.isDiskForCluster(&disk) {
+		if !a.isDiskForCluster(disk) {
 			continue
 		}
 
 		v := &volumes.Volume{
 			MountName:  "master-" + *disk.Name,
 			ProviderID: *disk.ID,
-			EtcdName:   a.extractEtcdName(&disk),
-			Status:     string(disk.DiskProperties.DiskState),
+			EtcdName:   a.extractEtcdName(disk),
+			Status:     string(*disk.Properties.DiskState),
 			Info: volumes.VolumeInfo{
 				Description: *disk.Name,
 			},
@@ -149,9 +149,9 @@ func (a *AzureVolumes) FindVolumes() ([]*volumes.Volume, error) {
 			l := strings.Split(*disk.ManagedBy, "/")
 			v.AttachedTo = l[len(l)-1]
 			if v.AttachedTo == a.instanceID {
-				ld, err := a.findLocalDevice(&disk)
+				ld, err := a.findLocalDevice(disk)
 				if err != nil {
-					return nil, fmt.Errorf("error finding a local device: %s", err)
+					return nil, fmt.Errorf("error finding a local device: %w", err)
 				}
 				v.LocalDevice = ld
 			}
@@ -210,29 +210,29 @@ func (a *AzureVolumes) AttachVolume(volume *volumes.Volume) error {
 		instID := a.client.vmScaleSetInstanceID()
 		vm, err := a.client.getVMScaleSetVM(ctx, instID)
 		if err != nil {
-			return fmt.Errorf("error getting VM: %s", err)
+			return fmt.Errorf("error getting VM: %w", err)
 		}
 
 		// Update the VM and append a new data disk.
 		lun, err := a.findAvailableLun()
 		if err != nil {
-			return fmt.Errorf("error finding available Lun: %s", err)
+			return fmt.Errorf("error finding available Lun: %w", err)
 		}
 
-		d := compute.DataDisk{
-			Lun: to.Int32Ptr(lun),
+		d := &compute.DataDisk{
+			Lun: to.Ptr(lun),
 			// This is a hack to get a disk name from the description.
-			Name:         to.StringPtr(volume.Info.Description),
-			CreateOption: compute.DiskCreateOptionTypesAttach,
+			Name:         to.Ptr(volume.Info.Description),
+			CreateOption: to.Ptr(compute.DiskCreateOptionTypesAttach),
 			ManagedDisk: &compute.ManagedDiskParameters{
-				StorageAccountType: compute.StorageAccountTypesStandardLRS,
-				ID:                 to.StringPtr(volume.ProviderID),
+				StorageAccountType: to.Ptr(compute.StorageAccountTypesStandardSSDLRS),
+				ID:                 to.Ptr(volume.ProviderID),
 			},
 		}
-		dds := append(*vm.StorageProfile.DataDisks, d)
-		vm.StorageProfile.DataDisks = &dds
+		dds := append(vm.Properties.StorageProfile.DataDisks, d)
+		vm.Properties.StorageProfile.DataDisks = dds
 		if err := a.client.updateVMScaleSetVM(ctx, instID, *vm); err != nil {
-			return fmt.Errorf("error updating VM: %s", err)
+			return fmt.Errorf("error updating VM: %w", err)
 		}
 
 		volume.LocalDevice = lunToDev(strconv.Itoa(int(lun)))
@@ -284,15 +284,15 @@ func (a *AzureVolumes) findAvailableLun() (int32, error) {
 	instID := a.client.vmScaleSetInstanceID()
 	vm, err := a.client.getVMScaleSetVM(ctx, instID)
 	if err != nil {
-		return 0, fmt.Errorf("error getting VM: %s", err)
+		return 0, fmt.Errorf("error getting VM: %w", err)
 	}
 
-	if len(*vm.StorageProfile.DataDisks) == 0 {
+	if len(vm.Properties.StorageProfile.DataDisks) == 0 {
 		return 0, nil
 	}
 
 	var maxLun int32
-	for _, dd := range *vm.StorageProfile.DataDisks {
+	for _, dd := range vm.Properties.StorageProfile.DataDisks {
 		if lun := *dd.Lun; lun > maxLun {
 			maxLun = lun
 		}
