@@ -138,6 +138,9 @@ func BindirForEtcdVersion(etcdVersion string, cmd string) (string, error) {
 	for _, baseDir := range baseDirs {
 		binDir := filepath.Join(baseDir, "etcd-"+etcdVersion)
 		binDirs = append(binDirs, binDir)
+		// Mount etcd images as volumes: https://kubernetes.io/docs/tasks/configure-pod-container/image-volumes/
+		binDirImageVolume := filepath.Join(baseDir, "etcd-"+etcdVersion, "usr", "local", "bin")
+		binDirs = append(binDirs, binDirImageVolume)
 	}
 
 	for _, binDir := range binDirs {
