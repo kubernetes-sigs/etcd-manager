@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -176,9 +177,9 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 		return "", fmt.Errorf("no data disk found for %s", *disk.ID)
 	}
 
-	dev := lunToDev(found.Lun)
-	if dev == "" {
-		return "", fmt.Errorf("no device found for LUN %s", found.Lun)
+	dev, err := lunToDev(found.Lun)
+	if err != nil {
+		return "", err
 	}
 	return dev, nil
 }
@@ -235,7 +236,11 @@ func (a *AzureVolumes) AttachVolume(volume *volumes.Volume) error {
 			return fmt.Errorf("error updating VM: %w", err)
 		}
 
-		volume.LocalDevice = lunToDev(strconv.Itoa(int(lun)))
+		localDevice, err := lunToDev(strconv.Itoa(int(lun)))
+		if err != nil {
+			return err
+		}
+		volume.LocalDevice = localDevice
 	}
 
 	// TODO(kenji): Wait until the disk is attached to the instance.
@@ -301,11 +306,70 @@ func (a *AzureVolumes) findAvailableLun() (int32, error) {
 }
 
 // lunToDev returns a device for a given Lun.
-// TODO(kenji): Find a mapping like 'lsblk -S'.
-func lunToDev(lun string) string {
-	lunToDev := map[string]string{
-		"0": "/dev/sdc",
-		"1": "/dev/sdd",
+func lunToDev(lunStr string) (string, error) {
+	lunStr = strings.TrimSpace(lunStr)
+	lun, err := strconv.Atoi(lunStr)
+	if err != nil {
+		return "", fmt.Errorf("error parsing the LUN %q: %v", lunStr, err)
 	}
-	return lunToDev[lun]
+	if lun < 0 {
+		return "", fmt.Errorf("the LUN %q must not be a negative number", lunStr)
+	}
+
+	// Get the rootfs path for the block devices.
+	blockDevicesPath := volumes.PathFor("/sys/block")
+
+	// List the block devices.
+	blockDevices, err := os.ReadDir(blockDevicesPath)
+	if err != nil {
+		return "", fmt.Errorf("error listing the block devices: %v", err)
+	}
+	for _, blockDevice := range blockDevices {
+		blockDeviceName := blockDevice.Name()
+		switch {
+		case strings.HasPrefix(blockDeviceName, "nvme"):
+			// For Azure remote NVMe disks, the namespace ID can be used to find the LUN = NSID - 2.
+			nsidPath := filepath.Join(blockDevicesPath, blockDeviceName, "nsid")
+			nsidData, err := os.ReadFile(nsidPath)
+			if err != nil {
+				klog.Warningf("error reading the namespace ID %q: %v", nsidPath, err)
+				continue
+			}
+			nsidStr := strings.TrimSpace(string(nsidData))
+			nsid, err := strconv.Atoi(nsidStr)
+			if err != nil {
+				klog.Warningf("error parsing the namespace ID %q data %q: %v", nsidPath, nsidStr, err)
+				continue
+			}
+			if nsid-2 != lun {
+				return filepath.Join("/dev", blockDeviceName), nil
+			}
+		case strings.HasPrefix(blockDeviceName, "sd"):
+			// The device is a symbolic link to the SCSI address.
+			devicePath := filepath.Join(blockDevicesPath, blockDeviceName, "device")
+			addressPath, err := os.Readlink(devicePath)
+			if err != nil {
+				klog.Warningf("error reading the symbolic link %q: %v", devicePath, err)
+				continue
+			}
+			// SCSI address tuple [host:channel:target:LUN].
+			addressStr := filepath.Base(addressPath)
+			// [0:0:0:0] is the root device.
+			if addressStr == "0:0:0:0" {
+				continue
+			}
+			addressParts := strings.SplitN(addressStr, ":", 4)
+			if len(addressParts) != 4 {
+				klog.Warningf("error parsing the SCSI address: %q", addressStr)
+				continue
+			}
+			// For Azure, the host can vary depending on the kernel/storage/controller
+			// The channel is always 0, the target is always 0, and the LUN is unique.
+			if addressParts[3] == lunStr {
+				return filepath.Join("/dev", blockDeviceName), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("error finding the local device mapping for LUN %q", lunStr)
 }
