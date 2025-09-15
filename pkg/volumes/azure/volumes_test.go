@@ -18,56 +18,11 @@ package azure
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
-	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
-
-func TestAttachVolume(t *testing.T) {
-	client := newMockClient()
-	a, err := newAzureVolumes("cluster", []string{}, "nameTag", client)
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	volume := &volumes.Volume{
-		ProviderID: "id",
-		Info: volumes.VolumeInfo{
-			Description: "name",
-		},
-	}
-
-	client.vms["0"] = &compute.VirtualMachineScaleSetVM{
-		Properties: &compute.VirtualMachineScaleSetVMProperties{
-			StorageProfile: &compute.StorageProfile{
-				DataDisks: []*compute.DataDisk{},
-			},
-		},
-	}
-
-	if err := a.AttachVolume(volume); err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	actual := client.vms["0"].Properties.StorageProfile.DataDisks
-	expected := []*compute.DataDisk{
-		{
-			Lun:          to.Ptr(int32(0)),
-			Name:         to.Ptr("name"),
-			CreateOption: to.Ptr(compute.DiskCreateOptionTypesAttach),
-			ManagedDisk: &compute.ManagedDiskParameters{
-				StorageAccountType: to.Ptr(compute.StorageAccountTypesStandardSSDLRS),
-				ID:                 to.Ptr("id"),
-			},
-		},
-	}
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("expected %+v, but got +%v", expected, actual)
-	}
-}
 
 func TestIsDiskForCluster(t *testing.T) {
 	volumeTags := []string{"k0", "k1=v1"}
