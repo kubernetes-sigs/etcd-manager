@@ -10,8 +10,8 @@ Ensure the commit you are tagging is showing as green in github & prow test resu
 
 Pull the latest changes:
 ```
-git checkout master
-git pull upstream master
+git checkout main
+git pull upstream main
 ```
 
 Set the version using `dev/set-version.sh`:
@@ -28,7 +28,7 @@ git add version.txt && git commit -m "Release v${VERSION}"
 
 This is the "release commit". Push and create a PR.
 ```
-gh pr create -f
+gh pr create -f -l tide/merge-method-squash
 ```
 
 
