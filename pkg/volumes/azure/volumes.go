@@ -316,7 +316,7 @@ func lunToDev(lunStr string) (string, error) {
 			klog.Warningf("error reading the symbolic link %q: %v", lunPath, err)
 		} else {
 			deviceName := filepath.Base(lunDevice)
-			return deviceName, nil
+			return filepath.Join("/dev", deviceName), nil
 		}
 	}
 
@@ -329,7 +329,7 @@ func lunToDev(lunStr string) (string, error) {
 			klog.Warningf("error reading the symbolic link %q: %v", lunPath, err)
 		} else {
 			deviceName := filepath.Base(lunDevice)
-			return deviceName, nil
+			return filepath.Join("/dev", deviceName), nil
 		}
 	}
 
