@@ -1,6 +1,6 @@
 module sigs.k8s.io/etcd-manager
 
-go 1.25.4
+go 1.25.5
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
