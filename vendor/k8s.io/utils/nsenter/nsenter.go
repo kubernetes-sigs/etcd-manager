@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	"k8s.io/klog/v2"
+
 	"k8s.io/utils/exec"
 )
 
@@ -245,18 +246,18 @@ type fakeExec struct {
 	rootfsPath string
 }
 
-func (f fakeExec) Command(cmd string, args ...string) exec.Cmd {
+func (f fakeExec) Command(_ string, args ...string) exec.Cmd {
 	// This will intentionaly panic if NSEnter does not provide enough arguments.
 	realCmd := args[2]
 	realArgs := args[3:]
 	return exec.New().Command(realCmd, realArgs...)
 }
 
-func (fakeExec) LookPath(file string) (string, error) {
+func (fakeExec) LookPath(_ string) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (fakeExec) CommandContext(ctx context.Context, cmd string, args ...string) exec.Cmd {
+func (fakeExec) CommandContext(_ context.Context, _ string, _ ...string) exec.Cmd {
 	return nil
 }
 

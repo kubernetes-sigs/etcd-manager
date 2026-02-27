@@ -60,7 +60,7 @@ func (a *HetznerVolumes) Poll() (map[string]discovery.Node, error) {
 		klog.V(2).Infof("Discovered volume %s(%d) attached to server %s(%d)", volume.Name, volume.ID, server.Name, serverID)
 		// We use the etcd node ID as the persistent identifier, because the data determines who we are
 		node := discovery.Node{
-			ID:        "vol-" + strconv.Itoa(volume.ID),
+			ID:        "vol-" + strconv.FormatInt(volume.ID, 10),
 			Endpoints: []discovery.NodeEndpoint{{IP: serverPrivateIP.String()}},
 		}
 		peers[node.ID] = node

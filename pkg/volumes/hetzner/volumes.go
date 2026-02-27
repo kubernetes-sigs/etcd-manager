@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hetznercloud/hcloud-go/hcloud"
-	"github.com/hetznercloud/hcloud-go/hcloud/metadata"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud/metadata"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
@@ -141,7 +141,7 @@ func (a *HetznerVolumes) FindVolumes() ([]*volumes.Volume, error) {
 
 		klog.V(2).Infof("Found attachable volume %s(%d) with status %q", volume.Name, volume.ID, volume.Status)
 
-		volumeID := strconv.Itoa(volume.ID)
+		volumeID := strconv.FormatInt(volume.ID, 10)
 		localEtcdVolume := &volumes.Volume{
 			ProviderID: volumeID,
 			Info: volumes.VolumeInfo{
@@ -152,7 +152,7 @@ func (a *HetznerVolumes) FindVolumes() ([]*volumes.Volume, error) {
 		}
 
 		if volume.Server != nil {
-			localEtcdVolume.AttachedTo = strconv.Itoa(volume.Server.ID)
+			localEtcdVolume.AttachedTo = strconv.FormatInt(volume.Server.ID, 10)
 			if volume.Server.ID == a.server.ID {
 				localEtcdVolume.LocalDevice = fmt.Sprintf("%s%d", localDevicePrefix, volume.ID)
 			}
@@ -188,7 +188,7 @@ func (a *HetznerVolumes) AttachVolume(volume *volumes.Volume) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	volumeID, err := strconv.Atoi(volume.ProviderID)
+	volumeID, err := strconv.ParseInt(volume.ProviderID, 10, 64)
 	if err != nil {
 		return fmt.Errorf("failed to convert volume id %q to int: %w", volume.ProviderID, err)
 	}
