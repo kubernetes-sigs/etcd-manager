@@ -1,6 +1,6 @@
 steps:
 # Push the images
-- name: "mirror.gcr.io/library/golang:1.25.5-bookworm"
+- name: "mirror.gcr.io/library/golang:1.25.7-trixie"
   id: etcd-manager-slim-image
   entrypoint: make
   env:
@@ -11,7 +11,7 @@ steps:
   - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
   args:
   - push-etcd-manager-slim
-- name: "mirror.gcr.io/library/golang:1.25.5-bookworm"
+- name: "mirror.gcr.io/library/golang:1.25.7-trixie"
   id: etcd-backup-image
   entrypoint: make
   env:
@@ -22,7 +22,7 @@ steps:
   - DOCKER_IMAGE_PREFIX=$_DOCKER_IMAGE_PREFIX
   args:
   - push-etcd-backup
-- name: "mirror.gcr.io/library/golang:1.25.5-bookworm"
+- name: "mirror.gcr.io/library/golang:1.25.7-trixie"
   id: etcd-dump-image
   entrypoint: make
   env:
