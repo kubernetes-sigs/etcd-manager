@@ -52,6 +52,7 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/volumes/external"
 	"sigs.k8s.io/etcd-manager/pkg/volumes/gce"
 	"sigs.k8s.io/etcd-manager/pkg/volumes/hetzner"
+	"sigs.k8s.io/etcd-manager/pkg/volumes/linode"
 	"sigs.k8s.io/etcd-manager/pkg/volumes/openstack"
 	"sigs.k8s.io/etcd-manager/pkg/volumes/scaleway"
 )
@@ -305,6 +306,16 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 
 			volumeProvider = hetznerVolumeProvider
 			discoveryProvider = hetznerVolumeProvider
+
+		case "linode":
+			linodeVolumeProvider, err := linode.NewLinodeVolumes(o.ClusterName, o.VolumeTags, o.NameTag)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%v\n", err)
+				os.Exit(1)
+			}
+
+			volumeProvider = linodeVolumeProvider
+			discoveryProvider = linodeVolumeProvider
 
 		case "azure":
 			azureVolumeProvider, err := azure.NewAzureVolumes(o.ClusterName, o.VolumeTags, o.NameTag)

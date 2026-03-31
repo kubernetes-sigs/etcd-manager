@@ -1,0 +1,85 @@
+version: "2"
+run:
+  tests: false
+linters:
+  default: all
+  disable:
+    - bodyclose
+    - cyclop
+    - depguard
+    - dupl
+    - err113
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - forcetypeassert
+    - gochecknoglobals
+    - gochecknoinits
+    - godot
+    - godox
+    - inamedparam
+    - lll
+    - musttag
+    - nilerr
+    - nlreturn
+    - noinlineerr
+    - nolintlint
+    - nonamedreturns
+    - perfsprint
+    - recvcheck
+    - staticcheck
+    - tagliatelle
+    - varnamelen
+    - wrapcheck
+    - wsl
+  settings:
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocognit:
+      min-complexity: 30
+    gocyclo:
+      min-complexity: 30
+    govet:
+      enable:
+        - atomicalign
+        - shadow
+      enable-all: false
+      disable-all: false
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - gosec
+        # "matches secret pattern" linodego necessarily serializes and
+        # deserializes API structs that contain secrets
+        text: G117
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  settings:
+    golines:
+      max-len: 160
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

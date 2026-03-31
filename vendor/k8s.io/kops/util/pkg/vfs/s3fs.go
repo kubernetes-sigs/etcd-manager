@@ -282,7 +282,7 @@ func (p *S3Path) getServerSideEncryption(ctx context.Context) (sse types.ServerS
 		if err != nil {
 			return "", "", err
 		}
-		defaultEncryption := bucketDetails.hasServerSideEncryptionByDefault(ctx)
+		defaultEncryption := bucketDetails.hasServerSideEncryptionByDefault(ctx, p.scheme)
 		if defaultEncryption {
 			sseLog = "DefaultBucketEncryption"
 		} else {
@@ -529,7 +529,7 @@ func (p *S3Path) client(ctx context.Context) (*s3.Client, error) {
 		return nil, err
 	}
 
-	client, err := p.s3Context.getClient(ctx, bucketDetails.region)
+	client, err := p.s3Context.getClient(ctx, bucketDetails.region, p.scheme)
 	if err != nil {
 		return nil, err
 	}
@@ -644,6 +644,10 @@ func (p *S3Path) IsBucketPublic(ctx context.Context) (bool, error) {
 }
 
 func (p *S3Path) IsPublic() (bool, error) {
+	if p.scheme == "linode" {
+		// Linode (Akamai) does not implement GetObjectAcl. In that case we conservatively treat the object as non-public and continue.
+		return false, nil
+	}
 	ctx := context.TODO()
 	client, err := p.client(ctx)
 	if err != nil {
