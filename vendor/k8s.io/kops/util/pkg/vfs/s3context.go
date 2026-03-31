@@ -84,10 +84,11 @@ func (*ResolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParame
 	return s3.NewDefaultEndpointResolverV2().ResolveEndpoint(ctx, params)
 }
 
-func (s *S3Context) getClient(ctx context.Context, region string) (*s3.Client, error) {
+func (s *S3Context) getClient(ctx context.Context, region string, scheme string) (*s3.Client, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	// Client configuration is currently determined by region and process-wide environment.
 	s3Client := s.clients[region]
 	if s3Client == nil {
 		_, span := tracer.Start(ctx, "S3Context::getClient")
@@ -114,6 +115,12 @@ func (s *S3Context) getClient(ctx context.Context, region string) (*s3.Client, e
 			if endpoint != "" {
 				o.BaseEndpoint = aws.String(endpoint)
 				o.UsePathStyle = true
+				o.DisableLogOutputChecksumValidationSkipped = true
+				// Linode (Akamai) requires checksum-when-required behavior
+				if scheme == "linode" {
+					o.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+					o.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
+				}
 			} else {
 				o.EndpointResolverV2 = &ResolverV2{}
 			}
@@ -197,7 +204,7 @@ func (s *S3Context) getDetailsForBucket(ctx context.Context, bucket string) (*S3
 	}
 	var response *s3.GetBucketLocationOutput
 
-	s3Client, err := s.getClient(ctx, awsRegion)
+	s3Client, err := s.getClient(ctx, awsRegion, "s3")
 	if err != nil {
 		return bucketDetails, fmt.Errorf("error connecting to S3: %s", err)
 	}
@@ -234,7 +241,7 @@ func (s *S3Context) getDetailsForBucket(ctx context.Context, bucket string) (*S3
 	return bucketDetails, nil
 }
 
-func (b *S3BucketDetails) hasServerSideEncryptionByDefault(ctx context.Context) bool {
+func (b *S3BucketDetails) hasServerSideEncryptionByDefault(ctx context.Context, scheme string) bool {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -250,7 +257,7 @@ func (b *S3BucketDetails) hasServerSideEncryptionByDefault(ctx context.Context) 
 	// We only make one attempt to find the SSE policy (even if there's an error)
 	b.applyServerSideEncryptionByDefault = &applyServerSideEncryptionByDefault
 
-	client, err := b.context.getClient(ctx, b.region)
+	client, err := b.context.getClient(ctx, b.region, scheme)
 	if err != nil {
 		klog.Warningf("Unable to read bucket encryption policy for %q in region %q: will encrypt using AES256", b.name, b.region)
 		return false

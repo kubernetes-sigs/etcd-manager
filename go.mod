@@ -18,6 +18,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gophercloud/gophercloud/v2 v2.11.1
 	github.com/hetznercloud/hcloud-go/v2 v2.37.0
+	github.com/linode/linodego v1.67.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	go.etcd.io/etcd/api/v3 v3.6.9
@@ -30,7 +31,7 @@ require (
 	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.3
 	k8s.io/klog/v2 v2.140.0
-	k8s.io/kops v1.35.0
+	k8s.io/kops v1.35.0-beta.1.0.20260331142617-440ba636295e
 	k8s.io/mount-utils v0.35.3
 	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5
 	sigs.k8s.io/yaml v1.6.0
@@ -65,6 +66,7 @@ require (
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
@@ -101,6 +103,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260316180232-0b37fe3546d5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gopkg.in/ini.v1 v1.67.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
