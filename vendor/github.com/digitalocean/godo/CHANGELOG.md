@@ -1,5 +1,40 @@
 # Change Log
 
+## [1.182.0] - 2026-03-31
+
+- #978 - @jkosanam - Add access key CRUD operations to FunctionsService
+- #980 - @kirineni-do - Add is managed field in response of list auth tokens
+
+## [1.181.0] - 2026-03-30
+
+- #972 - @v-amanjain-afk - implemented reassign workflow
+- #977 - @anitgandhi - droplets: add optional public_networking bool to create request
+
+## [1.180.0] - 2026-03-27
+
+- #975 - @venkatranabothu - Add ModelAvailability to Model struct in GradientAI
+
+## [1.179.0] - 2026-03-25
+
+- #973 - @chandrudo - Added two functions for model retrieval
+
+## [1.178.0] - 2026-03-16
+
+- #969 - @d-honeybadger - add support for DOKS SSO toggles
+- #968 - @Rachana888 - Add DI get GPUModelConfig
+- #967 - @Rachana888 - Add DI sizes/pricing
+- #966 - @Rachana888 - add DI token management operations (CreateToken, ListTokens, RevokeToken)
+- #964 - @Rachana888 - Add List operation for Dedicated Inference Accelerators
+- #963 - @Rachana888 - Add List operation for Dedicated Inference
+- #962 - @Rachana888 - Add Dedicated Inference Delete operation
+- #961 - @Rachana888 - Add Dedicated Inference Update operation
+- #958 - @Rachana888 - Add Dedicated Inference Create and Get operations
+
+## [1.177.0] - 2026-03-11
+
+- #959 - @blesswinsamuel - Add ListEvents, CancelEvent, and GetEventLogs APIs for App Platform
+- #960 - @ZachEddy - apps: Add secure_header.remove_header to app spec definition
+
 ## [1.176.0] - 2026-02-26
 
 - #953 - @kamleshsahu - Add dbaas metrics client

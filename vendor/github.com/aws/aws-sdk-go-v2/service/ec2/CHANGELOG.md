@@ -1,3 +1,29 @@
+# v1.296.1 (2026-03-26)
+
+* **Bug Fix**: Fix a bug where a recorded clock skew could persist on the client even if the client and server clock ended up realigning.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.296.0 (2026-03-19)
+
+* **Feature**: Amazon EC2 Fleet instant mode now supports launching instances into Interruptible Capacity Reservations, enabling customers to use spare capacity shared by Capacity Reservation owners within their AWS Organization.
+
+# v1.295.0 (2026-03-18)
+
+* **Feature**: The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo.
+
+# v1.294.1 (2026-03-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.294.0 (2026-03-05)
+
+* **Feature**: Added metadata field to CapacityAllocation.
+
+# v1.293.1 (2026-03-03)
+
+* **Dependency Update**: Bump minimum Go version to 1.24
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.293.0 (2026-02-26)
 
 * **Feature**: Add c8id, m8id and hpc8a instance types.
