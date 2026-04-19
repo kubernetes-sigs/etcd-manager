@@ -475,7 +475,7 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 
 	ctx := context.TODO()
 
-	myInfo := privateapi.PeerInfo{
+	myInfo := &privateapi.PeerInfo{
 		Id:        string(myPeerId),
 		Endpoints: []string{grpcEndpoint},
 	}

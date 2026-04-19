@@ -32,7 +32,7 @@ import (
 )
 
 type Server struct {
-	myInfo     PeerInfo
+	myInfo     *PeerInfo
 	grpcServer *grpc.Server
 
 	clientTLSConfig *tls.Config
@@ -66,7 +66,11 @@ type Server struct {
 	dnsSuffix string
 }
 
-func NewServer(ctx context.Context, myInfo PeerInfo, serverTLSConfig *tls.Config, discovery discovery.Interface, defaultPort int, dnsProvider dns.Provider, dnsSuffix string, clientTLSConfig *tls.Config, discoveryPollInterval time.Duration) (*Server, error) {
+func NewServer(ctx context.Context, myInfo *PeerInfo, serverTLSConfig *tls.Config, discovery discovery.Interface, defaultPort int, dnsProvider dns.Provider, dnsSuffix string, clientTLSConfig *tls.Config, discoveryPollInterval time.Duration) (*Server, error) {
+	if myInfo == nil {
+		return nil, fmt.Errorf("myInfo is required")
+	}
+
 	s := &Server{
 		context:         ctx,
 		discovery:       discovery,
@@ -137,7 +141,7 @@ func (s *Server) Ping(ctx context.Context, request *PingRequest) (*PingResponse,
 	}
 
 	response := &PingResponse{
-		Info: &s.myInfo,
+		Info: s.myInfo,
 	}
 	return response, nil
 }

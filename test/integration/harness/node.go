@@ -149,7 +149,7 @@ func (n *TestHarnessNode) Run() {
 	dnsProvider := &MockDNSProvider{}
 	dnsSuffix := "mock.local"
 
-	myInfo := privateapi.PeerInfo{
+	myInfo := &privateapi.PeerInfo{
 		Id:        string(uniqueID),
 		Endpoints: []string{grpcEndpoint},
 	}

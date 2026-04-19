@@ -48,12 +48,12 @@ var _ Store = &vfsStore{}
 
 type vfsCommand struct {
 	p    vfs.Path
-	data protoetcd.Command
+	data *protoetcd.Command
 }
 
 var _ Command = &vfsCommand{}
 
-func (c *vfsCommand) Data() protoetcd.Command {
+func (c *vfsCommand) Data() *protoetcd.Command {
 	return c.data
 }
 
@@ -106,8 +106,10 @@ func (s *vfsStore) ListCommands() ([]Command, error) {
 			return nil, fmt.Errorf("error reading %s: %v", f, err)
 		}
 
-		command := &vfsCommand{}
-		if err = protoetcd.FromJson(string(data), &command.data); err != nil {
+		command := &vfsCommand{
+			data: &protoetcd.Command{},
+		}
+		if err = protoetcd.FromJson(string(data), command.data); err != nil {
 			return nil, fmt.Errorf("error parsing command %q: %v", f, err)
 		}
 		command.p = f
