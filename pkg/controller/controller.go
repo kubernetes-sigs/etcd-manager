@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"k8s.io/klog/v2"
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/backup"

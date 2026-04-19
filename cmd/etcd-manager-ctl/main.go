@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/prototext"
 	"k8s.io/klog/v2"
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/backup"
@@ -160,7 +160,7 @@ func runListCommands(ctx context.Context, o *Options) error {
 
 	for _, c := range commands {
 		data := c.Data()
-		fmt.Fprintf(os.Stdout, "%s\n", proto.CompactTextString(&data))
+		fmt.Fprintf(os.Stdout, "%s\n", prototext.Format(&data))
 	}
 
 	return nil

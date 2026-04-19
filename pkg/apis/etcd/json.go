@@ -17,17 +17,15 @@ limitations under the License.
 package etcd
 
 import (
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func ToJson(o proto.Message) (string, error) {
-	marshaler := jsonpb.Marshaler{
-		Indent: "  ",
-	}
-	return marshaler.MarshalToString(o)
+	b, err := protojson.MarshalOptions{Indent: "  "}.Marshal(o)
+	return string(b), err
 }
 
 func FromJson(s string, o proto.Message) error {
-	return jsonpb.UnmarshalString(s, o)
+	return protojson.Unmarshal([]byte(s), o)
 }
