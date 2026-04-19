@@ -213,6 +213,7 @@ func (s *EtcdServer) GetInfo(ctx context.Context, request *protoetcd.GetInfoRequ
 	response := &protoetcd.GetInfoResponse{}
 	response.ClusterName = s.clusterName
 	response.NodeConfiguration = s.etcdNodeConfiguration
+	response.DiskEmpty = isDiskEmpty(s.baseDir)
 
 	if s.state != nil && s.state.Cluster != nil {
 		response.EtcdState = s.state
@@ -230,6 +231,49 @@ func (s *EtcdServer) GetInfo(ctx context.Context, request *protoetcd.GetInfoRequ
 	//}
 
 	return response, nil
+}
+
+func isDiskEmpty(baseDir string) bool {
+	statePath := filepath.Join(baseDir, StateFileName)
+	if _, err := os.Stat(statePath); err == nil {
+		return false
+	} else if !os.IsNotExist(err) {
+		klog.Warningf("error checking state file %q: %v", statePath, err)
+		return false
+	}
+
+	for _, name := range []string{DataDirName, TrashcanDirName} {
+		p := filepath.Join(baseDir, name)
+		empty, err := isMissingOrEmptyDir(p)
+		if err != nil {
+			klog.Warningf("error checking data directory %q: %v", p, err)
+			return false
+		}
+		if !empty {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isMissingOrEmptyDir(p string) (bool, error) {
+	stat, err := os.Stat(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	if !stat.IsDir() {
+		return false, fmt.Errorf("%q exists but is not a directory", p)
+	}
+
+	entries, err := os.ReadDir(p)
+	if err != nil {
+		return false, err
+	}
+	return len(entries) == 0, nil
 }
 
 // UpdateEndpoints updates /etc/hosts with the other cluster members

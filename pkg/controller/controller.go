@@ -501,6 +501,13 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 		}
 	}
 
+	{
+		changed, err := m.maybeRemoveStaleMemberForEmptyDiskReplacement(ctx, clusterSpec, clusterState, versionMismatch, quarantinedMembers)
+		if changed || err != nil {
+			return changed, err
+		}
+	}
+
 	// remove unhealthy members if we need a slot to add an idle peer
 	if len(clusterState.healthyMembers) < int(len(clusterState.members)) {
 		// We only want to remove members to make room to add another
