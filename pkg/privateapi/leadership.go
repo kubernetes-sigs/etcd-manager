@@ -163,7 +163,7 @@ func (s *Server) BecomeLeader(ctx context.Context) ([]PeerId, string, error) {
 	for _, info := range infos {
 		request.View.Healthy = append(request.View.Healthy, info)
 	}
-	request.View.Leader = &s.myInfo
+	request.View.Leader = s.myInfo
 	request.View.LeadershipToken = randomToken()
 
 	var acked []PeerId
@@ -204,7 +204,7 @@ func (s *Server) AssertLeadership(ctx context.Context, leadershipToken string) e
 	for _, info := range infos {
 		request.View.Healthy = append(request.View.Healthy, info)
 	}
-	request.View.Leader = &s.myInfo
+	request.View.Leader = s.myInfo
 	request.View.LeadershipToken = leadershipToken
 
 	for peerID := range snapshot {

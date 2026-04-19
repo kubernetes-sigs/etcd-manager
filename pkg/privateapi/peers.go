@@ -249,7 +249,7 @@ func (p *peer) sendPings(ctx context.Context, pingInterval time.Duration) error 
 
 		context := context.Background()
 		request := &PingRequest{
-			Info: &p.server.myInfo,
+			Info: p.server.myInfo,
 		}
 		response, err := client.Ping(context, request)
 		klog.V(8).Infof("got ping response from %s: %v", p.id, response)
@@ -333,7 +333,7 @@ func (p *peer) connect() (*grpc.ClientConn, error) {
 		client := NewClusterServiceClient(conn)
 		context := context.Background()
 		request := &PingRequest{
-			Info: &p.server.myInfo,
+			Info: p.server.myInfo,
 		}
 		response, err := client.Ping(context, request)
 		if err != nil {

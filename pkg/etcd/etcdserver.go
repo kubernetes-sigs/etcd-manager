@@ -25,8 +25,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
 	"k8s.io/klog/v2"
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/backup"
@@ -441,7 +442,7 @@ func (s *EtcdServer) Reconfigure(ctx context.Context, request *protoetcd.Reconfi
 	}
 
 	s.state = state
-	klog.Infof("updated cluster state: %s", proto.CompactTextString(state))
+	klog.Infof("updated cluster state: %s", prototext.Format(state))
 	if err := writeState(s.baseDir, s.state); err != nil {
 		return nil, err
 	}

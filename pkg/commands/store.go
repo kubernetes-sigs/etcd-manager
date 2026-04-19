@@ -46,7 +46,7 @@ type Store interface {
 }
 
 type Command interface {
-	Data() protoetcd.Command
+	Data() *protoetcd.Command
 }
 
 func NewStore(storage string) (Store, error) {
