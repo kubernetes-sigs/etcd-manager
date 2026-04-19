@@ -160,7 +160,7 @@ func runListCommands(ctx context.Context, o *Options) error {
 
 	for _, c := range commands {
 		data := c.Data()
-		fmt.Fprintf(os.Stdout, "%s\n", prototext.Format(data))
+		fmt.Fprintf(os.Stdout, "%s\n", prototext.MarshalOptions{}.Format(data))
 	}
 
 	return nil
