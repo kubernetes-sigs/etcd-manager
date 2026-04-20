@@ -41,6 +41,14 @@ import (
 
 const PreparedValidity = time.Minute
 
+// Names of the on-disk entries under baseDir that etcd-manager owns.
+const (
+	StateFileName   = "state"
+	DataDirName     = "data"
+	PkiDirName      = "pki"
+	TrashcanDirName = "data-trashcan"
+)
+
 type EtcdServer struct {
 	baseDir               string
 	peerServer            *privateapi.Server
@@ -119,7 +127,7 @@ func (s *EtcdServer) Run(ctx context.Context) {
 }
 
 func readState(baseDir string) (*protoetcd.EtcdState, error) {
-	p := filepath.Join(baseDir, "state")
+	p := filepath.Join(baseDir, StateFileName)
 	b, err := os.ReadFile(p)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -138,7 +146,7 @@ func readState(baseDir string) (*protoetcd.EtcdState, error) {
 }
 
 func writeState(baseDir string, state *protoetcd.EtcdState) error {
-	p := filepath.Join(baseDir, "state")
+	p := filepath.Join(baseDir, StateFileName)
 
 	b, err := proto.Marshal(state)
 	if err != nil {
@@ -485,8 +493,8 @@ func (s *EtcdServer) StopEtcd(ctx context.Context, request *protoetcd.StopEtcdRe
 		return nil, err
 	}
 
-	oldDataDir := filepath.Join(s.baseDir, "data", clusterToken)
-	trashcanDir := filepath.Join(s.baseDir, "data-trashcan")
+	oldDataDir := filepath.Join(s.baseDir, DataDirName, clusterToken)
+	trashcanDir := filepath.Join(s.baseDir, TrashcanDirName)
 	if err := os.MkdirAll(trashcanDir, 0755); err != nil {
 		klog.Warningf("error creating trashcan directory %s: %v", trashcanDir, err)
 	}
@@ -562,8 +570,8 @@ func (s *EtcdServer) startEtcdProcess(state *protoetcd.EtcdState) error {
 	if state.Cluster.ClusterToken == "" {
 		return fmt.Errorf("ClusterToken not configured, cannot start etcd")
 	}
-	dataDir := filepath.Join(s.baseDir, "data", state.Cluster.ClusterToken)
-	pkiDir := filepath.Join(s.baseDir, "pki", state.Cluster.ClusterToken)
+	dataDir := filepath.Join(s.baseDir, DataDirName, state.Cluster.ClusterToken)
+	pkiDir := filepath.Join(s.baseDir, PkiDirName, state.Cluster.ClusterToken)
 	klog.Infof("starting etcd with datadir %s", dataDir)
 
 	state = proto.Clone(state).(*protoetcd.EtcdState)
