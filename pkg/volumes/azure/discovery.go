@@ -19,64 +19,76 @@ package azure
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
-	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 var _ discovery.Interface = &AzureVolumes{}
 
-// Poll returns etcd nodes key by their IDs.
+// Poll returns etcd nodes keyed by their IDs.
 func (a *AzureVolumes) Poll() (map[string]discovery.Node, error) {
 	vs, err := a.FindVolumes()
 	if err != nil {
 		return nil, fmt.Errorf("error finding volumes: %w", err)
 	}
 
-	instanceToVolumeMap := map[string]*volumes.Volume{}
-	for _, v := range vs {
-		if v.AttachedTo != "" {
-			instanceToVolumeMap[v.AttachedTo] = v
-		}
-	}
-
-	if len(instanceToVolumeMap) == 0 {
-		return map[string]discovery.Node{}, nil
-	}
-
 	ctx := context.TODO()
-	vms, err := a.client.listVMScaleSetVMs(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error listing VM Scale Set VMs: %w", err)
-	}
-
-	ifaces, err := a.client.listVMSSNetworkInterfaces(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error listing network interfaces: %w", err)
-	}
-	endpointsByVMID := map[string][]discovery.NodeEndpoint{}
-	for _, iface := range ifaces {
-		vmID := *iface.Properties.VirtualMachine.ID
-		for _, i := range iface.Properties.IPConfigurations {
-			ep := discovery.NodeEndpoint{IP: *i.Properties.PrivateIPAddress}
-			endpointsByVMID[vmID] = append(endpointsByVMID[vmID], ep)
-		}
-	}
-
 	nodes := map[string]discovery.Node{}
-	for _, vm := range vms {
-		volume, ok := instanceToVolumeMap[*vm.Name]
-		if !ok {
+	for _, v := range vs {
+		if v.AttachedTo == "" {
 			continue
 		}
+
+		rid, err := arm.ParseResourceID(v.AttachedTo)
+		if err != nil {
+			klog.Warningf("error parsing AttachedTo resource ID %q: %v", v.AttachedTo, err)
+			continue
+		}
+
+		// Extract the VMSS name from the parent resource and the
+		// instance ID from the VM name suffix (<vmssName>_<instanceID>).
+		vmssName := rid.Parent.Name
+		instanceID := vmInstanceID(rid.Name)
+
+		endpoints, err := a.endpointsForVMSSVM(ctx, vmssName, instanceID)
+		if err != nil {
+			return nil, fmt.Errorf("error getting endpoints for %s: %w", v.AttachedTo, err)
+		}
+
 		// We use the etcd node ID as the persistent
 		// identifier because the data determines who we are.
-		node := discovery.Node{
-			ID:        volume.EtcdName,
-			Endpoints: endpointsByVMID[*vm.ID],
+		nodes[v.EtcdName] = discovery.Node{
+			ID:        v.EtcdName,
+			Endpoints: endpoints,
 		}
-		nodes[node.ID] = node
 	}
 
 	return nodes, nil
+}
+
+// endpointsForVMSSVM returns the private IP endpoints for a specific VMSS VM instance.
+func (a *AzureVolumes) endpointsForVMSSVM(ctx context.Context, vmssName, instanceID string) ([]discovery.NodeEndpoint, error) {
+	ifaces, err := a.client.listVMSSVMNetworkInterfaces(ctx, vmssName, instanceID)
+	if err != nil {
+		return nil, err
+	}
+	var endpoints []discovery.NodeEndpoint
+	for _, iface := range ifaces {
+		for _, ipConfig := range iface.Properties.IPConfigurations {
+			endpoints = append(endpoints, discovery.NodeEndpoint{IP: *ipConfig.Properties.PrivateIPAddress})
+		}
+	}
+	return endpoints, nil
+}
+
+// vmInstanceID extracts the VMSS instance ID from a VM name.
+// Azure VMSS VMs are named <vmssName>_<instanceID>.
+func vmInstanceID(vmName string) string {
+	if idx := strings.LastIndex(vmName, "_"); idx >= 0 {
+		return vmName[idx+1:]
+	}
+	return vmName
 }

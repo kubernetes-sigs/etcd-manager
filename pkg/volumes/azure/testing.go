@@ -28,7 +28,7 @@ type mockClient struct {
 	dDisks []*dataDisk
 	vms    map[string]*compute.VirtualMachineScaleSetVM
 	disks  []*compute.Disk
-	ifaces []*network.Interface
+	ifaces map[string][]*network.Interface // keyed by instanceID
 }
 
 var _ clientInterface = &mockClient{}
@@ -59,14 +59,6 @@ func (c *mockClient) localIP() net.IP {
 	return net.ParseIP("10.0.0.1")
 }
 
-func (c *mockClient) listVMScaleSetVMs(_ context.Context) ([]*compute.VirtualMachineScaleSetVM, error) {
-	var l []*compute.VirtualMachineScaleSetVM
-	for _, v := range c.vms {
-		l = append(l, v)
-	}
-	return l, nil
-}
-
 func (c *mockClient) getVMScaleSetVM(_ context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error) {
 	vm := c.vms[instanceID]
 	return vm, nil
@@ -80,6 +72,6 @@ func (c *mockClient) listDisks(_ context.Context) ([]*compute.Disk, error) {
 	return c.disks, nil
 }
 
-func (c *mockClient) listVMSSNetworkInterfaces(_ context.Context) ([]*network.Interface, error) {
-	return c.ifaces, nil
+func (c *mockClient) listVMSSVMNetworkInterfaces(_ context.Context, _, instanceID string) ([]*network.Interface, error) {
+	return c.ifaces[instanceID], nil
 }

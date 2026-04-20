@@ -57,7 +57,7 @@ func TestPoll(t *testing.T) {
 			Properties: &compute.DiskProperties{
 				DiskState: to.Ptr(compute.DiskState("state")),
 			},
-			ManagedBy: to.Ptr("vm_0"),
+			ManagedBy: to.Ptr("/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/vmss/virtualMachines/vmss_0"),
 		},
 		{
 			Name: to.Ptr("name1"),
@@ -65,7 +65,7 @@ func TestPoll(t *testing.T) {
 			Properties: &compute.DiskProperties{
 				DiskState: to.Ptr(compute.DiskState("state")),
 			},
-			ManagedBy: to.Ptr("vm_1"),
+			ManagedBy: to.Ptr("/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/vmss/virtualMachines/vmss_1"),
 		},
 		{
 			// Unmanaged disk.
@@ -76,24 +76,9 @@ func TestPoll(t *testing.T) {
 			},
 		},
 	}
-	client.vms = map[string]*compute.VirtualMachineScaleSetVM{
-		"0": {
-			Name: to.Ptr("vm_0"),
-			ID:   to.Ptr("vmid0"),
-		},
-		"1": {
-			Name: to.Ptr("vm_1"),
-			ID:   to.Ptr("vmid1"),
-		},
-		"2": {
-			Name: to.Ptr("vm_2"),
-			ID:   to.Ptr("vmid2"),
-		},
-	}
-	client.ifaces = []*network.Interface{
-		newTestInterface("vmid0", "10.0.0.1"),
-		newTestInterface("vmid1", "10.0.0.2"),
-		newTestInterface("vmid2", "10.0.0.3"),
+	client.ifaces = map[string][]*network.Interface{
+		"0": {newTestInterface("vmid0", "10.0.0.1")},
+		"1": {newTestInterface("vmid1", "10.0.0.2")},
 	}
 
 	actual, err := a.Poll()

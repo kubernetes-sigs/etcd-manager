@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
 	network "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
@@ -39,11 +40,10 @@ type clientInterface interface {
 	refreshMetadata() error
 	localIP() net.IP
 
-	listVMScaleSetVMs(ctx context.Context) ([]*compute.VirtualMachineScaleSetVM, error)
 	getVMScaleSetVM(ctx context.Context, instanceID string) (*compute.VirtualMachineScaleSetVM, error)
 	updateVMScaleSetVM(ctx context.Context, instanceID string, parameters compute.VirtualMachineScaleSetVM) error
 	listDisks(ctx context.Context) ([]*compute.Disk, error)
-	listVMSSNetworkInterfaces(ctx context.Context) ([]*network.Interface, error)
+	listVMSSVMNetworkInterfaces(ctx context.Context, vmssName, instanceID string) ([]*network.Interface, error)
 }
 
 var _ clientInterface = &client{}
@@ -146,10 +146,13 @@ func (a *AzureVolumes) FindVolumes() ([]*volumes.Volume, error) {
 		}
 
 		if disk.ManagedBy != nil {
-			// Extract the VMSS instance name.
-			l := strings.Split(*disk.ManagedBy, "/")
-			v.AttachedTo = l[len(l)-1]
-			if v.AttachedTo == a.instanceID {
+			v.AttachedTo = *disk.ManagedBy
+			rid, err := arm.ParseResourceID(v.AttachedTo)
+			if err != nil {
+				klog.Warningf("error parsing ManagedBy resource ID %q: %v", v.AttachedTo, err)
+				continue
+			}
+			if rid.Name == a.instanceID {
 				ld, err := a.findLocalDevice(disk)
 				if err != nil {
 					return nil, fmt.Errorf("error finding a local device: %w", err)
@@ -168,7 +171,7 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 	// Find a corresponding data disk.
 	var found *dataDisk
 	for _, dataDisk := range a.client.dataDisks() {
-		if *disk.ID == dataDisk.ManagedDisk.ID {
+		if strings.EqualFold(*disk.ID, dataDisk.ManagedDisk.ID) {
 			found = dataDisk
 			break
 		}

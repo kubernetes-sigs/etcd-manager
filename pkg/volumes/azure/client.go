@@ -19,14 +19,12 @@ package azure
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
@@ -175,17 +173,13 @@ func (c *client) localIP() net.IP {
 	return nil
 }
 
-func (c *client) listVMScaleSetVMs(ctx context.Context) ([]*compute.VirtualMachineScaleSetVM, error) {
-	var l []*compute.VirtualMachineScaleSetVM
-	pager := c.scaleSetVMs.NewListPager(c.resourceGroupName(), c.vmScaleSetName(), nil)
+func (c *client) listVMSSVMNetworkInterfaces(ctx context.Context, vmssName, instanceID string) ([]*network.Interface, error) {
+	var l []*network.Interface
+	pager := c.networkInterfaces.NewListVirtualMachineScaleSetVMNetworkInterfacesPager(c.resourceGroupName(), vmssName, instanceID, nil)
 	for pager.More() {
 		resp, err := pager.NextPage(ctx)
 		if err != nil {
-			var respErr *azcore.ResponseError
-			if errors.As(err, &respErr) && respErr.ErrorCode == "ResourceGroupNotFound" {
-				return nil, nil
-			}
-			return nil, fmt.Errorf("listing VMSSs: %w", err)
+			return nil, fmt.Errorf("listing VM network interfaces: %w", err)
 		}
 		l = append(l, resp.Value...)
 	}
@@ -221,19 +215,6 @@ func (c *client) listDisks(ctx context.Context) ([]*compute.Disk, error) {
 		resp, err := pager.NextPage(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("listing disks: %w", err)
-		}
-		l = append(l, resp.Value...)
-	}
-	return l, nil
-}
-
-func (c *client) listVMSSNetworkInterfaces(ctx context.Context) ([]*network.Interface, error) {
-	var l []*network.Interface
-	pager := c.networkInterfaces.NewListVirtualMachineScaleSetNetworkInterfacesPager(c.resourceGroupName(), c.vmScaleSetName(), nil)
-	for pager.More() {
-		resp, err := pager.NextPage(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("listing network interfaces: %w", err)
 		}
 		l = append(l, resp.Value...)
 	}
