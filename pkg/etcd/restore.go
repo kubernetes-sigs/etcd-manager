@@ -101,8 +101,8 @@ func (s *EtcdServer) DoRestore(ctx context.Context, request *protoetcd.DoRestore
 }
 
 func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir string) (*etcdProcess, error) {
-	dataDir := filepath.Join(basedir, "data")
-	pkiDir := filepath.Join(basedir, "pki")
+	dataDir := filepath.Join(basedir, DataDirName)
+	pkiDir := filepath.Join(basedir, PkiDirName)
 	clusterToken := filepath.Base(dataDir)
 
 	backupInfo, err := backupStore.LoadInfo(backupName)

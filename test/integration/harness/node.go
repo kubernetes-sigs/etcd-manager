@@ -132,7 +132,7 @@ func (n *TestHarnessNode) Run() {
 	var serverTLSConfig *tls.Config
 	var clientTLSConfig *tls.Config
 	if !n.InsecureMode {
-		store := pki.NewFSStore(filepath.Join(n.NodeDir, "pki"))
+		store := pki.NewFSStore(filepath.Join(n.NodeDir, etcd.PkiDirName))
 		keypairs := pki.NewKeypairs(store, n.TestHarness.grpcCA)
 
 		serverTLSConfig, err = tlsconfig.GRPCServerConfig(keypairs, string(uniqueID))
