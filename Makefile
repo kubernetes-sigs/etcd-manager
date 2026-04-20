@@ -46,7 +46,7 @@ download-etcd-versions:
 
 .PHONY: test-integration
 test-integration: download-etcd-versions
-	go test -v ./test/integration/backuprestore
+	go test -v ./test/integration
 
 .PHONY: test-backuprestore
 test-backuprestore: download-etcd-versions
