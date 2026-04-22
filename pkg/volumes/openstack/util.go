@@ -28,7 +28,7 @@ const (
 	openstackAddress        = "addr"
 )
 
-func GetServerFixedIP(addrs map[string]interface{}, name string, networkCIDR *net.IPNet) (poolAddress string, err error) {
+func GetServerFixedIP(addrs map[string]any, name string, networkCIDR *net.IPNet) (poolAddress string, err error) {
 	// Introduce some determinism, even though map ordering is random
 	var addressKeys []string
 	for addressKey := range addrs {
@@ -38,9 +38,9 @@ func GetServerFixedIP(addrs map[string]interface{}, name string, networkCIDR *ne
 
 	for _, addressKey := range addressKeys {
 		address := addrs[addressKey]
-		if addresses, ok := address.([]interface{}); ok {
+		if addresses, ok := address.([]any); ok {
 			for _, addr := range addresses {
-				addrMap := addr.(map[string]interface{})
+				addrMap := addr.(map[string]any)
 				if addrType, ok := addrMap[openstackExternalIPType]; ok && addrType == openstackAddressFixed {
 					if fixedIP, ok := addrMap[openstackAddress]; ok {
 						if fixedIPStr, ok := fixedIP.(string); ok {

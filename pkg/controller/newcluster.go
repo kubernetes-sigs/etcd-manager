@@ -118,7 +118,7 @@ func (m *EtcdController) createNewCluster(ctx context.Context, clusterState *etc
 			}
 			response, err := peer.rpcStopEtcd(ctx, request)
 			if err != nil {
-				return false, fmt.Errorf("error stopping etcd peer %q: %v", peer.Id, err)
+				return false, fmt.Errorf("error stopping etcd peer %q: %w", peer.Id, err)
 			}
 			klog.Infof("stopped etcd on peer %q: %v", peer.Id, response)
 		}
@@ -144,7 +144,7 @@ func (m *EtcdController) createNewCluster(ctx context.Context, clusterState *etc
 		joinClusterResponse, err := p.peer.rpcJoinCluster(ctx, joinClusterRequest)
 		if err != nil {
 			// TODO: Send a CANCEL message for anything PREPAREd?  (currently we rely on a slow timeout)
-			return false, fmt.Errorf("error from JoinClusterRequest (prepare) from peer %q: %v", p.peer, err)
+			return false, fmt.Errorf("error from JoinClusterRequest (prepare) from peer %q: %w", p.peer, err)
 		}
 		klog.V(2).Infof("JoinClusterResponse: %s", joinClusterResponse)
 	}
@@ -162,7 +162,7 @@ func (m *EtcdController) createNewCluster(ctx context.Context, clusterState *etc
 		joinClusterResponse, err := p.peer.rpcJoinCluster(ctx, joinClusterRequest)
 		if err != nil {
 			// TODO: Send a CANCEL message for anything PREPAREd?  (currently we rely on a slow timeout)
-			return false, fmt.Errorf("error from JoinClusterRequest from peer %q: %v", p.peer, err)
+			return false, fmt.Errorf("error from JoinClusterRequest from peer %q: %w", p.peer, err)
 		}
 		klog.V(2).Infof("JoinClusterResponse: %s", joinClusterResponse)
 	}

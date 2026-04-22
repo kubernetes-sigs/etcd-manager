@@ -110,7 +110,7 @@ func (p *etcdProcess) Stop() error {
 			return nil
 		}
 		p.mutex.Unlock()
-		return fmt.Errorf("failed to kill process: %v", err)
+		return fmt.Errorf("failed to kill process: %w", err)
 	}
 
 	for {
@@ -150,7 +150,7 @@ func BindirForEtcdVersion(etcdVersion string, cmd string) (string, error) {
 			if os.IsNotExist(err) {
 				continue
 			} else {
-				return "", fmt.Errorf("error checking for %s at %s: %v", cmd, etcdBinary, err)
+				return "", fmt.Errorf("error checking for %s at %s: %w", cmd, etcdBinary, err)
 			}
 		}
 		return binDir, nil
@@ -279,7 +279,7 @@ func (p *etcdProcess) Start() error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	if err := c.Start(); err != nil {
-		return fmt.Errorf("error starting etcd: %v", err)
+		return fmt.Errorf("error starting etcd: %w", err)
 	}
 	klog.Infof("started etcd with datadir %s; pid=%d", p.DataDir, c.Process.Pid)
 	p.cmd = c
@@ -444,11 +444,11 @@ func (p *etcdProcess) RestoreV3Snapshot(snapshotFile string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	if err := c.Start(); err != nil {
-		return fmt.Errorf("error running etcdctl snapshot restore: %v", err)
+		return fmt.Errorf("error running etcdctl snapshot restore: %w", err)
 	}
 	processState, err := c.Process.Wait()
 	if err != nil {
-		return fmt.Errorf("etcdctl snapshot restore returned an error: %v", err)
+		return fmt.Errorf("etcdctl snapshot restore returned an error: %w", err)
 	}
 	if !processState.Success() {
 		return fmt.Errorf("etcdctl snapshot restore returned a non-zero exit code")

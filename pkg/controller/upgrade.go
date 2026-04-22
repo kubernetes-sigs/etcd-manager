@@ -69,7 +69,7 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 	// Force a backup, even before we start to do anything
 	klog.Infof("backing up cluster before quarantine")
 	if _, err := m.doClusterBackup(ctx, clusterSpec, clusterState); err != nil {
-		return false, fmt.Errorf("error doing backup before upgrade/downgrade: %v", err)
+		return false, fmt.Errorf("error doing backup before upgrade/downgrade: %w", err)
 	}
 
 	// We quarantine first, so that we don't have to get down to a single node before it is safe to do a backup
@@ -96,12 +96,12 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 		}
 
 		if err := m.controlStore.AddCommand(cmd); err != nil {
-			return false, fmt.Errorf("error adding restore command: %v", err)
+			return false, fmt.Errorf("error adding restore command: %w", err)
 		}
 
 		for {
 			if err := m.refreshControlStore(time.Duration(0)); err != nil {
-				return false, fmt.Errorf("error refreshing control store: %v", err)
+				return false, fmt.Errorf("error refreshing control store: %w", err)
 			}
 			if m.getRestoreBackupCommand() != nil {
 				break
@@ -116,7 +116,7 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 		peer := memberToPeer[memberId]
 		if peer == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		request := &protoetcd.StopEtcdRequest{
@@ -124,7 +124,7 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 		}
 		response, err := peer.peer.rpcStopEtcd(ctx, request)
 		if err != nil {
-			return false, fmt.Errorf("error stopping etcd peer %q: %v", peer.peer.Id, err)
+			return false, fmt.Errorf("error stopping etcd peer %q: %w", peer.peer.Id, err)
 		}
 		klog.Infof("stopped etcd on peer %q: %v", peer.peer.Id, response)
 	}
@@ -147,7 +147,7 @@ func (m *EtcdController) upgradeInPlace(parentContext context.Context, clusterSp
 		p := memberToPeer[memberId]
 		if p == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		if p.info == nil || p.info.EtcdState == nil || p.peer == nil {
@@ -167,7 +167,7 @@ func (m *EtcdController) upgradeInPlace(parentContext context.Context, clusterSp
 		peer := memberToPeer[memberId]
 		if peer == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		if peer.info.EtcdState.EtcdVersion == clusterSpec.EtcdVersion {
@@ -184,7 +184,7 @@ func (m *EtcdController) upgradeInPlace(parentContext context.Context, clusterSp
 
 		response, err := peer.peer.rpcReconfigure(ctx, request)
 		if err != nil {
-			return false, fmt.Errorf("error reconfiguring etcd peer %q: %v", peer.peer.Id, err)
+			return false, fmt.Errorf("error reconfiguring etcd peer %q: %w", peer.peer.Id, err)
 		}
 		klog.Infof("reconfigured etcd on peer %q: %v", peer.peer.Id, response)
 

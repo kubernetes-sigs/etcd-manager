@@ -40,7 +40,7 @@ func (m *EtcdController) restoreBackupAndLiftQuarantine(parentContext context.Co
 
 	info, err := m.backupStore.LoadInfo(backup)
 	if err != nil {
-		return false, fmt.Errorf("error reading backup info in %q: %v", backup, err)
+		return false, fmt.Errorf("error reading backup info in %q: %w", backup, err)
 	}
 	if info == nil || info.EtcdVersion == "" {
 		return false, fmt.Errorf("etcd version not found in %q", backup)
@@ -65,7 +65,7 @@ func (m *EtcdController) restoreBackupAndLiftQuarantine(parentContext context.Co
 
 	response, err := peer.peer.rpcDoRestore(ctx, restoreRequest)
 	if err != nil {
-		return false, fmt.Errorf("error restoring backup on peer %v: %v", peer.peer, err)
+		return false, fmt.Errorf("error restoring backup on peer %v: %w", peer.peer, err)
 	}
 	klog.V(2).Infof("DoRestoreResponse: %s", response)
 
@@ -110,7 +110,7 @@ func (m *EtcdController) updateQuarantine(ctx context.Context, clusterState *etc
 
 		response, err := p.peer.rpcReconfigure(ctx, request)
 		if err != nil {
-			return changed, fmt.Errorf("error reconfiguring peer %v to not be quarantined: %v", p.peer, err)
+			return changed, fmt.Errorf("error reconfiguring peer %v to not be quarantined: %w", p.peer, err)
 		}
 		changed = true
 		klog.V(2).Infof("ReconfigureResponse: %s", response)

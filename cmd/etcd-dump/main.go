@@ -115,7 +115,7 @@ func runDump(backupFile string, out string) error {
 	}
 	defer sourceClient.Close()
 
-	for i := 0; i < 60; i++ {
+	for range 60 {
 		ctx := context.TODO()
 		_, err := sourceClient.Get(ctx, "/", true, 2*time.Second)
 		if err == nil {

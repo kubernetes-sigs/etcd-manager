@@ -25,7 +25,7 @@ import (
 type TestData struct {
 	clusterName string
 	ips         []string
-	addrs       map[string]interface{}
+	addrs       map[string]any
 }
 
 func getTestData() *TestData {
@@ -36,29 +36,29 @@ func getTestData() *TestData {
 		"192.168.2.1",
 	}
 
-	addrs := map[string]interface{}{
-		"test_network_1": []interface{}{
-			map[string]interface{}{
+	addrs := map[string]any{
+		"test_network_1": []any{
+			map[string]any{
 				"OS-EXT-IPS-MAC:mac_addr": "00:00:00:00:00:01",
 				"OS-EXT-IPS:type":         "fixed",
 				"addr":                    ips[0],
 				"version":                 "4",
 			},
-			map[string]interface{}{
+			map[string]any{
 				"OS-EXT-IPS-MAC:mac_addr": "00:00:00:00:00:02",
 				"OS-EXT-IPS:type":         "fixed",
 				"addr":                    ips[1],
 				"version":                 "6",
 			},
 		},
-		"test_network_2": []interface{}{
-			map[string]interface{}{
+		"test_network_2": []any{
+			map[string]any{
 				"OS-EXT-IPS-MAC:mac_addr": "00:00:00:00:00:03",
 				"OS-EXT-IPS:type":         "fixed",
 				"addr":                    ips[2],
 				"version":                 "4",
 			},
-			map[string]interface{}{
+			map[string]any{
 				"OS-EXT-IPS-MAC:mac_addr": "00:00:00:00:00:04",
 				"OS-EXT-IPS:type":         "fixed",
 				"addr":                    ips[3],
@@ -76,7 +76,7 @@ func getTestData() *TestData {
 
 func TestReturnErrorOnEmptyAddresses(t *testing.T) {
 	td := getTestData()
-	td.addrs = map[string]interface{}{}
+	td.addrs = map[string]any{}
 
 	expectedErr := fmt.Errorf("failed to find Fixed IP address for server %s", td.clusterName)
 

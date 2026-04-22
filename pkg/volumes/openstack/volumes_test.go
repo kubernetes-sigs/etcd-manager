@@ -53,7 +53,7 @@ var expectedDriveMetadata = &InstanceMetadata{
 	ProjectID:        "0123456789abcdeffedcba9876543210",
 }
 
-func assertTestResults(t *testing.T, err error, expected interface{}, actual interface{}) {
+func assertTestResults(t *testing.T, err error, expected any, actual any) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}

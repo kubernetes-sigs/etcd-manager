@@ -109,7 +109,7 @@ func findLocalIP() (net.IP, error) {
 				return len(ipI) < len(ipJ)
 			}
 
-			for i := 0; i < len(ipI); i++ {
+			for i := range ipI {
 				if ipI[i] != ipJ[i] {
 					return ipI[i] < ipJ[i]
 				}

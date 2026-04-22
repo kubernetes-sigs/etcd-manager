@@ -33,29 +33,29 @@ type gzFile struct {
 func (g *gzFile) expand(destFile string) error {
 	src, err := os.Open(g.File)
 	if err != nil {
-		return fmt.Errorf("error opening %q: %v", g.File, err)
+		return fmt.Errorf("error opening %q: %w", g.File, err)
 	}
 	defer src.Close()
 
 	dest, err := os.Create(destFile)
 	if err != nil {
-		return fmt.Errorf("error opening %q: %v", g.File, err)
+		return fmt.Errorf("error opening %q: %w", g.File, err)
 	}
 	defer dest.Close()
 
 	gz, err := gzip.NewReader(src)
 	if err != nil {
-		return fmt.Errorf("error reading gzip %q (source corrupted?): %v", g.File, err)
+		return fmt.Errorf("error reading gzip %q (source corrupted?): %w", g.File, err)
 	}
 
 	n, err := io.Copy(dest, gz)
 	if err != nil {
-		return fmt.Errorf("error expanding file: %v", err)
+		return fmt.Errorf("error expanding file: %w", err)
 	}
 	klog.V(2).Infof("expanded snapshot file, size=%d bytes", n)
 
 	if err := gz.Close(); err != nil {
-		return fmt.Errorf("error completing file expansion: %v", err)
+		return fmt.Errorf("error completing file expansion: %w", err)
 	}
 
 	return nil

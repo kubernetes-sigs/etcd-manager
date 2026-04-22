@@ -36,7 +36,7 @@ func getTestData(networkCIDR string, volumeProviderID string) *EtcdManagerOption
 	return &o
 }
 
-func assertTestResults(t *testing.T, err error, expected interface{}, actual interface{}) {
+func assertTestResults(t *testing.T, err error, expected any, actual any) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}

@@ -96,23 +96,23 @@ func (s *FSStore) Keypair(name string) MutableKeypair {
 
 func writePrivateKey(path string, privateKey *rsa.PrivateKey) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return fmt.Errorf("creating directories for private key file %q: %v", path, err)
+		return fmt.Errorf("creating directories for private key file %q: %w", path, err)
 	}
 
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		return fmt.Errorf("opening private key file %q: %v", path, err)
+		return fmt.Errorf("opening private key file %q: %w", path, err)
 	}
 
 	err = pem.Encode(f, &pem.Block{Type: RSAPrivateKeyBlockType, Bytes: x509.MarshalPKCS1PrivateKey(privateKey)})
 	if err != nil {
 		_ = f.Close()
-		return fmt.Errorf("writing private key file %q: %v", path, err)
+		return fmt.Errorf("writing private key file %q: %w", path, err)
 	}
 
 	err = f.Close()
 	if err != nil {
-		return fmt.Errorf("closing private key file %q: %v", path, err)
+		return fmt.Errorf("closing private key file %q: %w", path, err)
 	}
 
 	return nil
@@ -126,25 +126,25 @@ func (s *FSStore) WriteCABundle(ca *CA) error {
 
 func writeCertificates(path string, certificates ...*x509.Certificate) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return fmt.Errorf("creating directories for certificate file %q: %v", path, err)
+		return fmt.Errorf("creating directories for certificate file %q: %w", path, err)
 	}
 
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return fmt.Errorf("opening certificate file %q: %v", path, err)
+		return fmt.Errorf("opening certificate file %q: %w", path, err)
 	}
 
 	for _, cert := range certificates {
 		err = pem.Encode(f, &pem.Block{Type: CertificateBlockType, Bytes: cert.Raw})
 		if err != nil {
 			_ = f.Close()
-			return fmt.Errorf("writing certificate file %q: %v", path, err)
+			return fmt.Errorf("writing certificate file %q: %w", path, err)
 		}
 	}
 
 	err = f.Close()
 	if err != nil {
-		return fmt.Errorf("closing certificate file %q: %v", path, err)
+		return fmt.Errorf("closing certificate file %q: %w", path, err)
 	}
 
 	return nil
@@ -186,7 +186,7 @@ func loadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
 	privateKeyBytes, err := os.ReadFile(privateKeyPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("unable to read key %v: %v", privateKeyPath, err)
+			return nil, fmt.Errorf("unable to read key %v: %w", privateKeyPath, err)
 		} else {
 			return nil, err
 		}
@@ -195,7 +195,7 @@ func loadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
 	if privateKeyBytes != nil {
 		key, err := keyutil.ParsePrivateKeyPEM(privateKeyBytes)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse private key %q: %v", privateKeyPath, err)
+			return nil, fmt.Errorf("unable to parse private key %q: %w", privateKeyPath, err)
 		}
 
 		rsaKey, ok := key.(*rsa.PrivateKey)
@@ -212,7 +212,7 @@ func loadCertificate(certificatePath string, keypair *Keypair) error {
 	certBytes, err := os.ReadFile(certificatePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return fmt.Errorf("unable to read certificate %v: %v", certificatePath, err)
+			return fmt.Errorf("unable to read certificate %v: %w", certificatePath, err)
 		}
 		certBytes = nil
 	}
@@ -220,7 +220,7 @@ func loadCertificate(certificatePath string, keypair *Keypair) error {
 	if certBytes != nil {
 		cert, err := ParseOneCertificate(certBytes)
 		if err != nil {
-			return fmt.Errorf("error parsing certificate data in %q: %v", certificatePath, err)
+			return fmt.Errorf("error parsing certificate data in %q: %w", certificatePath, err)
 		}
 
 		keypair.Certificate = cert
@@ -233,7 +233,7 @@ func loadCertificateBundle(certificatePath string) ([]*x509.Certificate, error) 
 	certBytes, err := os.ReadFile(certificatePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("unable to read certificate %v: %v", certificatePath, err)
+			return nil, fmt.Errorf("unable to read certificate %v: %w", certificatePath, err)
 		}
 		certBytes = nil
 	}
@@ -241,7 +241,7 @@ func loadCertificateBundle(certificatePath string) ([]*x509.Certificate, error) 
 	if certBytes != nil {
 		certs, err := certutil.ParseCertsPEM(certBytes)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing certificate data in %q: %v", certificatePath, err)
+			return nil, fmt.Errorf("error parsing certificate data in %q: %w", certificatePath, err)
 		}
 
 		return certs, nil
