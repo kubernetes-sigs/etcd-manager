@@ -35,7 +35,6 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/controller"
 	"sigs.k8s.io/etcd-manager/pkg/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/hosts"
-	"sigs.k8s.io/etcd-manager/pkg/legacy"
 	"sigs.k8s.io/etcd-manager/pkg/locking"
 	"sigs.k8s.io/etcd-manager/pkg/metrics"
 	"sigs.k8s.io/etcd-manager/pkg/pki"
@@ -523,9 +522,6 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 		commandStore = store
 	} else {
 		commandStore = static.NewStaticCommandStore(staticConfig, o.DataDir)
-	}
-	if _, err := legacy.ScanForExisting(o.DataDir, commandStore); err != nil {
-		klog.Fatalf("error performing scan for legacy data: %v", err)
 	}
 
 	listenMetricsURLs := expandUrls(o.ListenMetricsURLs, o.Address, name)

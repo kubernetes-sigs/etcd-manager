@@ -90,46 +90,6 @@ func UpgradeInPlaceSupported(fromVersion, toVersion string) bool {
 	return false
 }
 
-func EtcdVersionForAdoption(fromVersion string) string {
-	fromSemver, err := semver.ParseTolerant(fromVersion)
-	if err != nil {
-		klog.Warningf("unknown version format: %q", fromVersion)
-		return ""
-	}
-
-	family := fmt.Sprintf("%d.%d", fromSemver.Major, fromSemver.Minor)
-	switch family {
-	case "3.0":
-		return Version_3_1_12
-	case "3.1":
-		return Version_3_1_12
-	case "3.2":
-		if fromSemver.Patch <= 18 {
-			return Version_3_2_18
-		} else {
-			return Version_3_2_24
-		}
-	case "3.3":
-		if fromSemver.Patch <= 10 {
-			return Version_3_3_10
-		} else if fromSemver.Patch <= 13 {
-			return Version_3_3_13
-		} else {
-			return Version_3_3_17
-		}
-	case "3.4":
-		if fromSemver.Patch <= 3 {
-			return Version_3_4_3
-		} else {
-			return Version_3_4_13
-		}
-	case "3.5":
-		return Version_3_5_7
-	default:
-		return ""
-	}
-}
-
 func EtcdVersionForRestore(fromVersion string) string {
 	fromSemver, err := semver.ParseTolerant(fromVersion)
 	if err != nil {
