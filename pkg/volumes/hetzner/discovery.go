@@ -59,11 +59,13 @@ func (a *HetznerVolumes) Poll() (map[string]discovery.Node, error) {
 
 		server, ok := serversByID[serverID]
 		if !ok {
-			return nil, fmt.Errorf("failed to retrieve info for server %d", serverID)
+			klog.Warningf("skipping volume %s(%d): server %d not found", volume.Name, volume.ID, serverID)
+			continue
 		}
 
 		if len(server.PrivateNet) == 0 {
-			return nil, fmt.Errorf("failed to find private net info for server %d", serverID)
+			klog.Warningf("skipping volume %s(%d): server %d has no private net", volume.Name, volume.ID, serverID)
+			continue
 		}
 		serverPrivateIP := server.PrivateNet[0].IP
 
