@@ -88,6 +88,9 @@ func newClient() (*client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error querying instance metadata: %w", err)
 	}
+	if m.Compute == nil {
+		return nil, fmt.Errorf("missing compute metadata")
+	}
 	if m.Compute.SubscriptionID == "" {
 		return nil, fmt.Errorf("empty subscription name")
 	}

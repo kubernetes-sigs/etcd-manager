@@ -171,6 +171,9 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 	// Find a corresponding data disk.
 	var found *dataDisk
 	for _, dataDisk := range a.client.dataDisks() {
+		if dataDisk.ManagedDisk == nil {
+			continue
+		}
 		if strings.EqualFold(*disk.ID, dataDisk.ManagedDisk.ID) {
 			found = dataDisk
 			break
@@ -272,7 +275,7 @@ func (a *AzureVolumes) extractEtcdName(disk *compute.Disk) string {
 		return *disk.Name
 	}
 	v, ok := disk.Tags[a.nameTag]
-	if !ok || *v == "" {
+	if !ok || v == nil || *v == "" {
 		return *disk.Name
 	}
 	l := strings.SplitN(*v, "/", 2)
@@ -301,6 +304,9 @@ func (a *AzureVolumes) findAvailableLun() (int32, error) {
 
 	var maxLun int32
 	for _, dd := range vm.Properties.StorageProfile.DataDisks {
+		if dd.Lun == nil {
+			continue
+		}
 		if lun := *dd.Lun; lun > maxLun {
 			maxLun = lun
 		}
