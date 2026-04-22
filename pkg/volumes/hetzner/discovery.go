@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
 )
@@ -38,6 +39,17 @@ func (a *HetznerVolumes) Poll() (map[string]discovery.Node, error) {
 		return nil, fmt.Errorf("failed to get matching volumes: %w", err)
 	}
 
+	// Fetch all servers once to avoid hitting Hetzner's 3600 req/hour rate limit
+	// (see: https://docs.hetzner.cloud/#rate-limiting).
+	allServers, err := a.hcloudClient.Server.All(context.TODO())
+	if err != nil {
+		return nil, fmt.Errorf("failed to list servers: %w", err)
+	}
+	serversByID := make(map[int64]*hcloud.Server, len(allServers))
+	for _, server := range allServers {
+		serversByID[server.ID] = server
+	}
+
 	for _, volume := range matchingVolumes {
 		if volume.Server == nil {
 			// Volume doesn't have a server attached yet
@@ -45,11 +57,9 @@ func (a *HetznerVolumes) Poll() (map[string]discovery.Node, error) {
 		}
 		serverID := volume.Server.ID
 
-		// TODO: Get all servers in a single requests to reduce the number of calls to the could API
-		// Hetzner Cloud API is limited to 3600 requests/hour (see: https://docs.hetzner.cloud/#rate-limiting)
-		server, _, err := a.hcloudClient.Server.GetByID(context.TODO(), serverID)
-		if err != nil || server == nil {
-			return nil, fmt.Errorf("failed to retrieve info for server %d: %w", serverID, err)
+		server, ok := serversByID[serverID]
+		if !ok {
+			return nil, fmt.Errorf("failed to retrieve info for server %d", serverID)
 		}
 
 		if len(server.PrivateNet) == 0 {
