@@ -66,8 +66,11 @@ func NewHetznerVolumes(clusterName string, volumeTags []string, nameTag string) 
 	hcloudClient := hcloud.NewClient(opts...)
 
 	server, _, err := hcloudClient.Server.GetByID(context.TODO(), serverID)
-	if err != nil || server == nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to get info for the running server: %w", err)
+	}
+	if server == nil {
+		return nil, fmt.Errorf("running server %d not found", serverID)
 	}
 
 	klog.V(2).Infof("Found name of the running server: %q", server.Name)
@@ -194,8 +197,11 @@ func (a *HetznerVolumes) AttachVolume(volume *volumes.Volume) error {
 	}
 
 	hetznerVolume, _, err := a.hcloudClient.Volume.GetByID(ctx, volumeID)
-	if err != nil || hetznerVolume == nil {
+	if err != nil {
 		return fmt.Errorf("failed to get info for volume id %q: %w", volume.ProviderID, err)
+	}
+	if hetznerVolume == nil {
+		return fmt.Errorf("volume id %q not found", volume.ProviderID)
 	}
 
 	if hetznerVolume.Server != nil {
