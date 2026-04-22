@@ -26,7 +26,7 @@ import (
 func ParseOneCertificate(b []byte) (*x509.Certificate, error) {
 	certs, err := certutil.ParseCertsPEM(b)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing certificate data: %v", err)
+		return nil, fmt.Errorf("error parsing certificate data: %w", err)
 	}
 
 	if len(certs) > 1 {

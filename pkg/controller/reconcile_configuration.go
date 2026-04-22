@@ -45,14 +45,14 @@ func (m *EtcdController) updatePeerURLs(ctx context.Context, peerID privateapi.P
 
 	etcdClient, err := etcdclient.NewClient(clientURLs, m.etcdClientTLSConfig)
 	if err != nil {
-		return changed, fmt.Errorf("unable to reach peer %s: %v", peerID, err)
+		return changed, fmt.Errorf("unable to reach peer %s: %w", peerID, err)
 	}
 
 	defer etcdclient.LoggedClose(etcdClient)
 
 	members, err := etcdClient.ListMembers(ctx)
 	if err != nil {
-		return changed, fmt.Errorf("error listing members on peer %q: %v", peerID, err)
+		return changed, fmt.Errorf("error listing members on peer %q: %w", peerID, err)
 	}
 
 	var member *etcdclient.EtcdProcessMember
@@ -67,7 +67,7 @@ func (m *EtcdController) updatePeerURLs(ctx context.Context, peerID privateapi.P
 	}
 
 	if err := etcdClient.SetPeerURLs(ctx, member, setPeerURLs); err != nil {
-		return changed, fmt.Errorf("error reconfiguring peer %v with peerUrls=%v: %v", peerID, setPeerURLs, err)
+		return changed, fmt.Errorf("error reconfiguring peer %v with peerUrls=%v: %w", peerID, setPeerURLs, err)
 	}
 
 	changed = true
@@ -154,7 +154,7 @@ func (m *EtcdController) reconcileTLS(ctx context.Context, clusterState *etcdClu
 
 			response, err := p.peer.rpcReconfigure(ctx, request)
 			if err != nil {
-				return false, fmt.Errorf("error reconfiguring peer %v with %v: %v", peerID, request, err)
+				return false, fmt.Errorf("error reconfiguring peer %v with %v: %w", peerID, request, err)
 			}
 			klog.Infof("reconfigured peer %v to enable TLS, response = %s", peerID, response)
 			return true, nil

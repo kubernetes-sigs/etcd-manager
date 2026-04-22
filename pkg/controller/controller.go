@@ -174,7 +174,7 @@ func (m *EtcdController) releaseLeaderLock() error {
 	if m.leaderLockGuard != nil {
 		klog.Infof("releasing leader lock")
 		if err := m.leaderLockGuard.Release(); err != nil {
-			return fmt.Errorf("failed to release leader lock guard: %v", err)
+			return fmt.Errorf("failed to release leader lock guard: %w", err)
 		}
 		m.leaderLockGuard = nil
 	}
@@ -221,7 +221,7 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 	if m.leaderLock != nil && m.leaderLockGuard == nil {
 		leaderLockGuard, err := m.leaderLock.Acquire(ctx, string(me.Id))
 		if err != nil {
-			return false, fmt.Errorf("error acquiring leader lock: %v", err)
+			return false, fmt.Errorf("error acquiring leader lock: %w", err)
 		}
 		if leaderLockGuard == nil {
 			klog.Infof("could not acquire leader lock")
@@ -234,11 +234,11 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 	if m.leadership == nil {
 		acked, leadershipToken, err := m.peers.BecomeLeader(ctx)
 		if err != nil {
-			return false, fmt.Errorf("error during LeaderNotification: %v", err)
+			return false, fmt.Errorf("error during LeaderNotification: %w", err)
 		}
 
 		if err := m.refreshControlStore(time.Duration(0)); err != nil {
-			return false, fmt.Errorf("error refreshing control store after leadership change: %v", err)
+			return false, fmt.Errorf("error refreshing control store after leadership change: %w", err)
 		}
 
 		ackedMap := make(map[privateapi.PeerId]bool)
@@ -293,7 +293,7 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 	// Query all our peers to try to find the actual state of etcd on each node
 	clusterState, err := m.updateClusterState(ctx, peers)
 	if err != nil {
-		return false, fmt.Errorf("error building cluster state: %v", err)
+		return false, fmt.Errorf("error building cluster state: %w", err)
 	}
 	klog.V(3).Infof("etcd cluster state: %s", clusterState)
 	klog.V(2).Infof("etcd cluster members: %s", clusterState.members)
@@ -344,18 +344,18 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 	}
 
 	if err := m.refreshControlStore(m.controlRefreshInterval); err != nil {
-		return false, fmt.Errorf("error refreshing control store: %v", err)
+		return false, fmt.Errorf("error refreshing control store: %w", err)
 	}
 
 	isNewCluster, err := m.controlStore.IsNewCluster()
 	if err != nil {
-		return false, fmt.Errorf("error checking control store: %v", err)
+		return false, fmt.Errorf("error checking control store: %w", err)
 	}
 	if isNewCluster {
 		klog.Infof("detected that there is no existing cluster")
 
 		if err := m.refreshControlStore(time.Duration(0)); err != nil {
-			return false, fmt.Errorf("error refreshing control store: %v", err)
+			return false, fmt.Errorf("error refreshing control store: %w", err)
 		}
 
 		clusterSpec := m.getControlClusterSpec()
@@ -662,7 +662,7 @@ func (m *EtcdController) updateClusterState(ctx context.Context, peers []*peer) 
 		getInfoResponse, err := peer.rpcGetInfo(ctx, getInfoRequest)
 		if err != nil {
 			// peers should only be healthy peers, so we don't expect an error
-			return nil, fmt.Errorf("error from GetInfo from peer %q: %v", peer.Id, err)
+			return nil, fmt.Errorf("error from GetInfo from peer %q: %w", peer.Id, err)
 		}
 
 		clusterState.peers[peer.Id] = &etcdClusterPeerInfo{
@@ -788,7 +788,7 @@ func (m *EtcdController) addNodeToCluster(ctx context.Context, clusterSpec *prot
 		if len(clusterState.members) != 0 {
 			// Force a backup first
 			if _, err := m.doClusterBackup(ctx, clusterSpec, clusterState); err != nil {
-				return false, fmt.Errorf("failed to backup (before adding peer): %v", err)
+				return false, fmt.Errorf("failed to backup (before adding peer): %w", err)
 			}
 		} else {
 			klog.Warningf("unable to do backup before adding peer - no members")
@@ -848,7 +848,7 @@ func (m *EtcdController) addNodeToCluster(ctx context.Context, clusterSpec *prot
 
 			joinClusterResponse, err := peer.peer.rpcJoinCluster(ctx, joinClusterRequest)
 			if err != nil {
-				return false, fmt.Errorf("error from JoinClusterRequest (prepare) from peer %q: %v", peer.peer.Id, err)
+				return false, fmt.Errorf("error from JoinClusterRequest (prepare) from peer %q: %w", peer.peer.Id, err)
 			}
 			klog.V(2).Infof("JoinCluster returned %s", joinClusterResponse)
 		}
@@ -877,7 +877,7 @@ func (m *EtcdController) addNodeToCluster(ctx context.Context, clusterSpec *prot
 				}
 			}
 
-			return false, fmt.Errorf("error adding peer %q to cluster: %v", peer, err)
+			return false, fmt.Errorf("error adding peer %q to cluster: %w", peer, err)
 		}
 
 		{
@@ -891,7 +891,7 @@ func (m *EtcdController) addNodeToCluster(ctx context.Context, clusterSpec *prot
 
 			joinClusterResponse, err := peer.peer.rpcJoinCluster(ctx, joinClusterRequest)
 			if err != nil {
-				return false, fmt.Errorf("error from JoinClusterRequest from peer %q: %v", peer.peer.Id, err)
+				return false, fmt.Errorf("error from JoinClusterRequest from peer %q: %w", peer.peer.Id, err)
 			}
 			klog.V(2).Infof("JoinCluster returned %s", joinClusterResponse)
 		}
@@ -994,7 +994,7 @@ func (m *EtcdController) removeNodeFromCluster(ctx context.Context, clusterSpec 
 
 	err := clusterState.etcdRemoveMember(ctx, victim)
 	if err != nil {
-		return false, fmt.Errorf("failed to remove member %q: %v", victim, err)
+		return false, fmt.Errorf("failed to remove member %q: %w", victim, err)
 	}
 
 	// TODO: Need to look for peers that are running etcd but aren't in the cluster

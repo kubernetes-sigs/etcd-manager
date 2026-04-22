@@ -121,13 +121,13 @@ func readState(baseDir string) (*protoetcd.EtcdState, error) {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("error reading state file %q: %v", p, err)
+		return nil, fmt.Errorf("error reading state file %q: %w", p, err)
 	}
 
 	state := &protoetcd.EtcdState{}
 	if err := proto.Unmarshal(b, state); err != nil {
 		// TODO: Have multiple state files?
-		return nil, fmt.Errorf("error parsing state file: %v", err)
+		return nil, fmt.Errorf("error parsing state file: %w", err)
 	}
 
 	return state, nil
@@ -138,11 +138,11 @@ func writeState(baseDir string, state *protoetcd.EtcdState) error {
 
 	b, err := proto.Marshal(state)
 	if err != nil {
-		return fmt.Errorf("error marshaling state data: %v", err)
+		return fmt.Errorf("error marshaling state data: %w", err)
 	}
 
 	if err := os.WriteFile(p, b, 0755); err != nil {
-		return fmt.Errorf("error writing state file %q: %v", p, err)
+		return fmt.Errorf("error writing state file %q: %w", p, err)
 	}
 	return nil
 }
@@ -235,7 +235,7 @@ func (s *EtcdServer) UpdateEndpoints(ctx context.Context, request *protoetcd.Upd
 				for _, a := range m.Addresses {
 					ip, _, err := net.SplitHostPort(a)
 					if err != nil {
-						return nil, fmt.Errorf("failed to parse address %s: %v", a, err)
+						return nil, fmt.Errorf("failed to parse address %s: %w", a, err)
 					}
 					addressToHosts[ip] = append(addressToHosts[ip], m.Dns)
 				}
@@ -406,7 +406,7 @@ func (s *EtcdServer) Reconfigure(ctx context.Context, request *protoetcd.Reconfi
 		return nil, err
 	}
 	if meNode == nil {
-		return nil, fmt.Errorf("could not find self node in cluster: %v", err)
+		return nil, fmt.Errorf("could not find self node in cluster: %w", err)
 	}
 
 	//// We just need to restart to update clienturls
@@ -434,7 +434,7 @@ func (s *EtcdServer) Reconfigure(ctx context.Context, request *protoetcd.Reconfi
 	klog.Infof("Stopping etcd for reconfigure request: %v", request)
 	_, err = s.stopEtcdProcess()
 	if err != nil {
-		return nil, fmt.Errorf("error stoppping etcd process: %v", err)
+		return nil, fmt.Errorf("error stoppping etcd process: %w", err)
 	}
 
 	s.state = state
@@ -472,7 +472,7 @@ func (s *EtcdServer) StopEtcd(ctx context.Context, request *protoetcd.StopEtcdRe
 
 	klog.Infof("Stopping etcd for stop request: %v", request)
 	if _, err := s.stopEtcdProcess(); err != nil {
-		return nil, fmt.Errorf("error stoppping etcd process: %v", err)
+		return nil, fmt.Errorf("error stoppping etcd process: %w", err)
 	}
 
 	state := &protoetcd.EtcdState{}
@@ -613,7 +613,7 @@ func (s *EtcdServer) startEtcdProcess(state *protoetcd.EtcdState) error {
 	}
 
 	if err := p.Start(); err != nil {
-		return fmt.Errorf("error starting etcd: %v", err)
+		return fmt.Errorf("error starting etcd: %w", err)
 	}
 
 	s.process = p
@@ -638,7 +638,7 @@ func (s *EtcdServer) stopEtcdProcess() (bool, error) {
 	klog.Infof("killing etcd with datadir %s", s.process.DataDir)
 	err := s.process.Stop()
 	if err != nil {
-		return true, fmt.Errorf("error killing etcd: %v", err)
+		return true, fmt.Errorf("error killing etcd: %w", err)
 	}
 	s.process = nil
 	return true, nil

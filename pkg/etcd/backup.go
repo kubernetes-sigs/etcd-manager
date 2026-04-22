@@ -43,7 +43,7 @@ func DoBackup(backupStore backup.Store, info *protoetcd.BackupInfo, dataDir stri
 func DoBackupV3(backupStore backup.Store, info *protoetcd.BackupInfo, clientUrls []string, tlsConfig *tls.Config) (*protoetcd.DoBackupResponse, error) {
 	tempDir, err := os.MkdirTemp("", "")
 	if err != nil {
-		return nil, fmt.Errorf("error creating etcd backup temp directory: %v", err)
+		return nil, fmt.Errorf("error creating etcd backup temp directory: %w", err)
 	}
 
 	defer func() {
@@ -55,14 +55,14 @@ func DoBackupV3(backupStore backup.Store, info *protoetcd.BackupInfo, clientUrls
 
 	client, err := etcdclient.NewClient(clientUrls, tlsConfig)
 	if err != nil {
-		return nil, fmt.Errorf("error building etcd client to etcd: %v", err)
+		return nil, fmt.Errorf("error building etcd client to etcd: %w", err)
 	}
 	defer etcdclient.LoggedClose(client)
 
 	snapshotFile := filepath.Join(tempDir, "snapshot.db.gz")
 	klog.Infof("performing snapshot save to %s", snapshotFile)
 	if err := client.SnapshotSave(context.TODO(), snapshotFile); err != nil {
-		return nil, fmt.Errorf("error performing snapshot save: %v", err)
+		return nil, fmt.Errorf("error performing snapshot save: %w", err)
 	}
 
 	return uploadBackup(backupStore, info, snapshotFile)
@@ -79,7 +79,7 @@ func uploadBackup(backupStore backup.Store, info *protoetcd.BackupInfo, srcFile 
 	}
 	backupName, err := backupStore.AddBackup(srcFile, fmt.Sprintf("%.6d", sequence), info)
 	if err != nil {
-		return nil, fmt.Errorf("error copying backup to storage: %v", err)
+		return nil, fmt.Errorf("error copying backup to storage: %w", err)
 	}
 
 	response := &protoetcd.DoBackupResponse{

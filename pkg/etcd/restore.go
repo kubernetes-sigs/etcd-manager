@@ -65,7 +65,7 @@ func (s *EtcdServer) DoRestore(ctx context.Context, request *protoetcd.DoRestore
 	clusterToken := "restore-etcd-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	tempDir := filepath.Join(os.TempDir(), clusterToken)
 	if err := os.MkdirAll(tempDir, 0700); err != nil {
-		return nil, fmt.Errorf("error creating tempdir %q: %v", tempDir, err)
+		return nil, fmt.Errorf("error creating tempdir %q: %w", tempDir, err)
 	}
 
 	defer func() {
@@ -89,7 +89,7 @@ func (s *EtcdServer) DoRestore(ctx context.Context, request *protoetcd.DoRestore
 
 	destClient, err := s.process.NewClient()
 	if err != nil {
-		return nil, fmt.Errorf("error building etcd client for target: %v", err)
+		return nil, fmt.Errorf("error building etcd client for target: %w", err)
 	}
 	defer destClient.Close()
 
@@ -119,7 +119,7 @@ func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir stri
 
 	klog.Infof("Downloading backup %q to %s", backupName, downloadFile)
 	if err := backupStore.DownloadBackup(backupName, downloadFile); err != nil {
-		return nil, fmt.Errorf("error restoring backup: %v", err)
+		return nil, fmt.Errorf("error restoring backup: %w", err)
 	}
 
 	etcdVersion := backupInfo.EtcdVersion
@@ -172,12 +172,12 @@ func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir stri
 
 	etcdClientsCA, err := pki.NewCA(pki.NewInMemoryStore())
 	if err != nil {
-		return nil, fmt.Errorf("error building CA: %v", err)
+		return nil, fmt.Errorf("error building CA: %w", err)
 	}
 
 	etcdPeersCA, err := pki.NewCA(pki.NewInMemoryStore())
 	if err != nil {
-		return nil, fmt.Errorf("error building CA: %v", err)
+		return nil, fmt.Errorf("error building CA: %w", err)
 	}
 
 	var peerClientIPs []net.IP // We restore using a single localhost server, so no additional cert SANs needed
@@ -191,7 +191,7 @@ func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir stri
 	snapshotFile := filepath.Join(basedir, "download", "snapshot.db")
 	archive := &gzFile{File: downloadFile}
 	if err := archive.expand(snapshotFile); err != nil {
-		return nil, fmt.Errorf("error expanding snapshot: %v", err)
+		return nil, fmt.Errorf("error expanding snapshot: %w", err)
 	}
 
 	if err := p.RestoreV3Snapshot(snapshotFile); err != nil {
@@ -200,7 +200,7 @@ func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir stri
 
 	klog.Infof("starting etcd to read backup")
 	if err := p.Start(); err != nil {
-		return nil, fmt.Errorf("error starting etcd: %v", err)
+		return nil, fmt.Errorf("error starting etcd: %w", err)
 	}
 
 	return p, nil
@@ -209,7 +209,7 @@ func RunEtcdFromBackup(backupStore backup.Store, backupName string, basedir stri
 func copyEtcd(ctx context.Context, source *etcdProcess, dest etcdclient.NodeSink) error {
 	sourceClient, err := source.NewClient()
 	if err != nil {
-		return fmt.Errorf("error building etcd client: %v", err)
+		return fmt.Errorf("error building etcd client: %w", err)
 	}
 	defer sourceClient.Close()
 
@@ -229,7 +229,7 @@ func copyEtcd(ctx context.Context, source *etcdProcess, dest etcdclient.NodeSink
 
 	klog.Infof("copying etcd keys from backup-restore process to new cluster")
 	if n, err := sourceClient.CopyTo(ctx, dest); err != nil {
-		return fmt.Errorf("error copying keys: %v", err)
+		return fmt.Errorf("error copying keys: %w", err)
 	} else {
 		klog.Infof("restored %d keys", n)
 	}
