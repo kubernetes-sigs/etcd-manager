@@ -24,6 +24,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -227,8 +228,8 @@ func (c *client) listDisks(ctx context.Context) ([]*compute.Disk, error) {
 // queryInstanceMetadata queries Azure Instance Metadata documented in
 // https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service.
 func queryInstanceMetadata() (*instanceMetadata, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://169.254.169.254/metadata/instance", nil)
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, "http://169.254.169.254/metadata/instance", nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating a new request: %w", err)
 	}
@@ -239,12 +240,16 @@ func queryInstanceMetadata() (*instanceMetadata, error) {
 	q.Add("api-version", "2020-06-01")
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error sending request to the metadata server: %w", err)
 	}
-
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d from metadata server", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading a response from the metadata server: %w", err)
