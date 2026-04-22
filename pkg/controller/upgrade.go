@@ -116,7 +116,7 @@ func (m *EtcdController) stopForUpgrade(parentContext context.Context, clusterSp
 		peer := memberToPeer[memberId]
 		if peer == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		request := &protoetcd.StopEtcdRequest{
@@ -147,7 +147,7 @@ func (m *EtcdController) upgradeInPlace(parentContext context.Context, clusterSp
 		p := memberToPeer[memberId]
 		if p == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		if p.info == nil || p.info.EtcdState == nil || p.peer == nil {
@@ -167,7 +167,7 @@ func (m *EtcdController) upgradeInPlace(parentContext context.Context, clusterSp
 		peer := memberToPeer[memberId]
 		if peer == nil {
 			// We checked this when we built the map
-			panic("peer unexpectedly not found - logic error")
+			return false, fmt.Errorf("peer unexpectedly not found for member %q - logic error", memberId)
 		}
 
 		if peer.info.EtcdState.EtcdVersion == clusterSpec.EtcdVersion {
