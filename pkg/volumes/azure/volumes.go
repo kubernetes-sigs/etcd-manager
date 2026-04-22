@@ -262,7 +262,7 @@ func (a *AzureVolumes) isDiskForCluster(disk *compute.Disk) bool {
 		if _, ok := a.matchTagKeys[k]; ok {
 			found++
 		}
-		if a.matchTags[k] == *v {
+		if matchVal, ok := a.matchTags[k]; ok && v != nil && *v == matchVal {
 			found++
 		}
 	}
