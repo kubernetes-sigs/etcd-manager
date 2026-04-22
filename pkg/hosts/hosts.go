@@ -19,7 +19,7 @@ package hosts
 import (
 	"bytes"
 	"fmt"
-	math_rand "math/rand"
+	"math/rand/v2"
 	"net"
 	"os"
 	"path/filepath"
@@ -218,7 +218,7 @@ func pseudoAtomicWrite(p string, b []byte, mode os.FileMode) error {
 			continue
 		}
 
-		n := 1 + math_rand.Intn(20)
+		n := 1 + rand.IntN(20)
 		time.Sleep(time.Duration(n) * time.Millisecond)
 
 		contents, err := os.ReadFile(p)

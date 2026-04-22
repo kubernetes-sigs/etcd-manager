@@ -23,7 +23,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	math_rand "math/rand"
+	"math/rand/v2"
 	"sort"
 	"strings"
 	"sync"
@@ -794,7 +794,7 @@ func (m *EtcdController) addNodeToCluster(ctx context.Context, clusterSpec *prot
 			klog.Warningf("unable to do backup before adding peer - no members")
 		}
 
-		peer := idlePeers[math_rand.Intn(len(idlePeers))]
+		peer := idlePeers[rand.IntN(len(idlePeers))]
 		klog.Infof("will try to start etcd on new peer: %v", peer)
 
 		clusterToken := ""
