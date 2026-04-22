@@ -33,7 +33,6 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/backup"
 	"sigs.k8s.io/etcd-manager/pkg/contextutil"
 	"sigs.k8s.io/etcd-manager/pkg/dns"
-	"sigs.k8s.io/etcd-manager/pkg/legacy"
 	"sigs.k8s.io/etcd-manager/pkg/pki"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi"
 	"sigs.k8s.io/etcd-manager/pkg/urls"
@@ -98,17 +97,6 @@ func NewEtcdServer(baseDir string, clusterName string, listenAddress string, lis
 	// Make sure we have read state from disk before serving
 	if err := s.initState(); err != nil {
 		return nil, err
-	}
-
-	if s.state == nil {
-		if state, err := legacy.ImportExistingEtcd(baseDir, etcdNodeConfiguration); err != nil {
-			return nil, err
-		} else if state != nil {
-			if err := writeState(s.baseDir, state); err != nil {
-				return nil, err
-			}
-			s.state = state
-		}
 	}
 
 	protoetcd.RegisterEtcdManagerServiceServer(peerServer.GrpcServer(), s)
