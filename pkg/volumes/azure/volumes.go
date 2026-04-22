@@ -171,6 +171,9 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 	// Find a corresponding data disk.
 	var found *dataDisk
 	for _, dataDisk := range a.client.dataDisks() {
+		if dataDisk.ManagedDisk == nil {
+			continue
+		}
 		if strings.EqualFold(*disk.ID, dataDisk.ManagedDisk.ID) {
 			found = dataDisk
 			break
@@ -188,6 +191,8 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 }
 
 // FindMountedVolume returns the device name of the mounted volume.
+// If the device is not (yet) present, it returns ("", nil), as required by
+// the volumes.Volumes interface — callers poll this in a retry loop.
 func (a *AzureVolumes) FindMountedVolume(volume *volumes.Volume) (string, error) {
 	dev := volume.LocalDevice
 
@@ -200,9 +205,7 @@ func (a *AzureVolumes) FindMountedVolume(volume *volumes.Volume) (string, error)
 	}
 	klog.V(2).Infof("volume %s not mounted at %s", volume.ProviderID, volumes.PathFor(dev))
 
-	// TODO(kenji): Do more check.
-
-	return dev, nil
+	return "", nil
 }
 
 // AttachVolume attaches the specified volume to this instance, returning nil if successful.
@@ -259,7 +262,7 @@ func (a *AzureVolumes) isDiskForCluster(disk *compute.Disk) bool {
 		if _, ok := a.matchTagKeys[k]; ok {
 			found++
 		}
-		if a.matchTags[k] == *v {
+		if matchVal, ok := a.matchTags[k]; ok && v != nil && *v == matchVal {
 			found++
 		}
 	}
@@ -272,7 +275,7 @@ func (a *AzureVolumes) extractEtcdName(disk *compute.Disk) string {
 		return *disk.Name
 	}
 	v, ok := disk.Tags[a.nameTag]
-	if !ok || *v == "" {
+	if !ok || v == nil || *v == "" {
 		return *disk.Name
 	}
 	l := strings.SplitN(*v, "/", 2)
@@ -301,6 +304,9 @@ func (a *AzureVolumes) findAvailableLun() (int32, error) {
 
 	var maxLun int32
 	for _, dd := range vm.Properties.StorageProfile.DataDisks {
+		if dd.Lun == nil {
+			continue
+		}
 		if lun := *dd.Lun; lun > maxLun {
 			maxLun = lun
 		}

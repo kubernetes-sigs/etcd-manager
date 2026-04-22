@@ -77,7 +77,13 @@ func (a *AzureVolumes) endpointsForVMSSVM(ctx context.Context, vmssName, instanc
 	}
 	var endpoints []discovery.NodeEndpoint
 	for _, iface := range ifaces {
+		if iface == nil || iface.Properties == nil {
+			continue
+		}
 		for _, ipConfig := range iface.Properties.IPConfigurations {
+			if ipConfig == nil || ipConfig.Properties == nil || ipConfig.Properties.PrivateIPAddress == nil {
+				continue
+			}
 			endpoints = append(endpoints, discovery.NodeEndpoint{IP: *ipConfig.Properties.PrivateIPAddress})
 		}
 	}
