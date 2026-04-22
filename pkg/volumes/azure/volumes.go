@@ -188,6 +188,8 @@ func (a *AzureVolumes) findLocalDevice(disk *compute.Disk) (string, error) {
 }
 
 // FindMountedVolume returns the device name of the mounted volume.
+// If the device is not (yet) present, it returns ("", nil), as required by
+// the volumes.Volumes interface — callers poll this in a retry loop.
 func (a *AzureVolumes) FindMountedVolume(volume *volumes.Volume) (string, error) {
 	dev := volume.LocalDevice
 
@@ -200,9 +202,7 @@ func (a *AzureVolumes) FindMountedVolume(volume *volumes.Volume) (string, error)
 	}
 	klog.V(2).Infof("volume %s not mounted at %s", volume.ProviderID, volumes.PathFor(dev))
 
-	// TODO(kenji): Do more check.
-
-	return dev, nil
+	return "", nil
 }
 
 // AttachVolume attaches the specified volume to this instance, returning nil if successful.
