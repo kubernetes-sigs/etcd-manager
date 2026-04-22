@@ -112,7 +112,7 @@ func runTest(t *testing.T, in string, expected string) {
 		t.Fatalf("error writing hosts file: %v", err)
 	}
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		if err := updateHostsFileWithRecords(p, key, addrToHosts); err != nil {
 			t.Fatalf("error updating hosts file: %v", err)
 		}

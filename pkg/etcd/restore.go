@@ -213,7 +213,7 @@ func copyEtcd(ctx context.Context, source *etcdProcess, dest etcdclient.NodeSink
 	}
 	defer sourceClient.Close()
 
-	for i := 0; i < 60; i++ {
+	for range 60 {
 		_, err := sourceClient.Get(ctx, "/", true, 2*time.Second)
 		if err == nil {
 			break
