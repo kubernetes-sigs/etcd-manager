@@ -53,7 +53,7 @@ func (a *HetznerVolumes) Poll() (map[string]discovery.Node, error) {
 		}
 
 		if len(server.PrivateNet) == 0 {
-			return nil, fmt.Errorf("failed to find private net info for server %d: ", serverID)
+			return nil, fmt.Errorf("failed to find private net info for server %d", serverID)
 		}
 		serverPrivateIP := server.PrivateNet[0].IP
 
