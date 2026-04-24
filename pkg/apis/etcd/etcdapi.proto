@@ -74,6 +74,8 @@ message GetInfoResponse {
 
     EtcdNode node_configuration = 5;
     EtcdState etcd_state = 6;
+
+    bool disk_empty = 7;
 }
 
 message UpdateEndpointsRequest {
