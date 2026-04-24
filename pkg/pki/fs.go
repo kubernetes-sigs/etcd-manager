@@ -95,7 +95,7 @@ func (s *FSStore) Keypair(name string) MutableKeypair {
 }
 
 func writePrivateKey(path string, privateKey *rsa.PrivateKey) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("creating directories for private key file %q: %w", path, err)
 	}
 
@@ -125,7 +125,7 @@ func (s *FSStore) WriteCABundle(ca *CA) error {
 }
 
 func writeCertificates(path string, certificates ...*x509.Certificate) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("creating directories for certificate file %q: %w", path, err)
 	}
 
