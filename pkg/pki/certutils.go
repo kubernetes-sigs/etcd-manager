@@ -37,7 +37,7 @@ const (
 	// RSAPrivateKeyBlockType is a possible value for pem.Block.Type.
 	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
 
-	rsaKeySize = 2048
+	rsaKeySize = 4096
 )
 
 // newPrivateKey creates an RSA private key
