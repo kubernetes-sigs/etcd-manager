@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -39,6 +40,19 @@ import (
 )
 
 const PreparedValidity = time.Minute
+
+// validateSubDirectory checks that child is a direct subdirectory of parent
+func validateSubDirectory(parent, child string) error {
+	cleaned := filepath.Clean(child)
+	rel, err := filepath.Rel(parent, cleaned)
+	if err != nil {
+		return fmt.Errorf("path %q is not within %q: %v", child, parent, err)
+	}
+	if strings.HasPrefix(rel, "..") || rel == "." {
+		return fmt.Errorf("path %q escapes parent directory %q", child, parent)
+	}
+	return nil
+}
 
 // Names of the on-disk entries under baseDir that etcd-manager owns.
 const (
@@ -481,13 +495,20 @@ func (s *EtcdServer) StopEtcd(ctx context.Context, request *protoetcd.StopEtcdRe
 		return nil, err
 	}
 
-	oldDataDir := filepath.Join(s.baseDir, DataDirName, clusterToken)
+	dataParent := filepath.Join(s.baseDir, DataDirName)
+	oldDataDir := filepath.Join(dataParent, clusterToken)
+	if err := validateSubDirectory(dataParent, oldDataDir); err != nil {
+		return nil, fmt.Errorf("invalid ClusterToken: %v", err)
+	}
 	trashcanDir := filepath.Join(s.baseDir, TrashcanDirName)
 	if err := os.MkdirAll(trashcanDir, 0755); err != nil {
 		klog.Warningf("error creating trashcan directory %s: %v", trashcanDir, err)
 	}
 
 	newDataDir := filepath.Join(trashcanDir, clusterToken)
+	if err := validateSubDirectory(trashcanDir, newDataDir); err != nil {
+		return nil, fmt.Errorf("invalid ClusterToken: %v", err)
+	}
 	klog.Infof("archiving etcd data directory %s -> %s", oldDataDir, newDataDir)
 
 	if err := os.Rename(oldDataDir, newDataDir); err != nil {
@@ -559,7 +580,13 @@ func (s *EtcdServer) startEtcdProcess(state *protoetcd.EtcdState) error {
 		return fmt.Errorf("ClusterToken not configured, cannot start etcd")
 	}
 	dataDir := filepath.Join(s.baseDir, DataDirName, state.Cluster.ClusterToken)
+	if err := validateSubDirectory(filepath.Join(s.baseDir, DataDirName), dataDir); err != nil {
+		return fmt.Errorf("invalid ClusterToken: %v", err)
+	}
 	pkiDir := filepath.Join(s.baseDir, PkiDirName, state.Cluster.ClusterToken)
+	if err := validateSubDirectory(filepath.Join(s.baseDir, PkiDirName), pkiDir); err != nil {
+		return fmt.Errorf("invalid ClusterToken: %v", err)
+	}
 	klog.Infof("starting etcd with datadir %s", dataDir)
 
 	state = proto.Clone(state).(*protoetcd.EtcdState)

@@ -31,6 +31,20 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 )
 
+// validateBackupName checks that a backup name is safe to use as a single path component
+func validateBackupName(name string) error {
+	if name == "" {
+		return fmt.Errorf("backup name must not be empty")
+	}
+	if name != path.Base(name) {
+		return fmt.Errorf("backup name contains invalid path characters: %q", name)
+	}
+	if name == "." || name == ".." {
+		return fmt.Errorf("backup name must not be %q", name)
+	}
+	return nil
+}
+
 func NewVFSStore(p vfs.Path) (Store, error) {
 	s := &vfsStore{
 		spec:        p.Path(),
@@ -123,6 +137,9 @@ func (s *vfsStore) ListBackups() ([]string, error) {
 }
 
 func (s *vfsStore) RemoveBackup(backup string) error {
+	if err := validateBackupName(backup); err != nil {
+		return err
+	}
 	p := s.backupsBase.Join(backup)
 	ctx := context.TODO()
 	files, err := p.ReadTree(ctx)
@@ -141,6 +158,10 @@ func (s *vfsStore) RemoveBackup(backup string) error {
 }
 
 func (s *vfsStore) LoadInfo(name string) (*etcd.BackupInfo, error) {
+	if err := validateBackupName(name); err != nil {
+		return nil, err
+	}
+
 	klog.Infof("Loading info for backup %q", name)
 
 	ctx := context.TODO()
@@ -167,6 +188,10 @@ func (s *vfsStore) Spec() string {
 }
 
 func (s *vfsStore) DownloadBackup(name string, destFile string) error {
+	if err := validateBackupName(name); err != nil {
+		return err
+	}
+
 	klog.Infof("Downloading backup %q -> %s", name, destFile)
 
 	dir := path.Dir(destFile)
