@@ -384,7 +384,7 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 		klog.Infof("Setting data dir to %s", o.DataDir)
 	}
 
-	if err := os.MkdirAll(o.DataDir, 0755); err != nil {
+	if err := os.MkdirAll(o.DataDir, 0700); err != nil {
 		return fmt.Errorf("error doing mkdirs on base directory %s: %v", o.DataDir, err)
 	}
 

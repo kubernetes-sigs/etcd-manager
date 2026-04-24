@@ -67,7 +67,7 @@ func (l *FSContentLock) Acquire(ctx context.Context, id string) (LockGuard, erro
 	hash := sha256.Sum256(b)
 	lockBytes := []byte(hex.EncodeToString(hash[:]) + "\n" + string(b))
 
-	f, err := os.OpenFile(l.p, os.O_RDWR|os.O_CREATE, 0755)
+	f, err := os.OpenFile(l.p, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("error creating lock file %q: %v", l.p, err)
 	}
@@ -148,7 +148,7 @@ func (l *FSContentLock) Acquire(ctx context.Context, id string) (LockGuard, erro
 }
 
 func (l *FSContentLockGuard) Release() error {
-	f, errO := os.OpenFile(l.p, os.O_RDWR, 0755)
+	f, errO := os.OpenFile(l.p, os.O_RDWR, 0600)
 	if errO != nil {
 		return fmt.Errorf("error opening file %q: %v", l.p, errO)
 	}

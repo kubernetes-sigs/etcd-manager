@@ -57,7 +57,7 @@ func (l *FSFlockLock) Acquire(ctx context.Context, id string) (LockGuard, error)
 	//	return nil, fmt.Errorf("error serializing lock info: %v", err)
 	//}
 
-	f, err := os.OpenFile(l.p, os.O_RDWR|os.O_CREATE, 0755)
+	f, err := os.OpenFile(l.p, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("error opening lock file %q: %v", l.p, err)
 	}

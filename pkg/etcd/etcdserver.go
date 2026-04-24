@@ -141,7 +141,7 @@ func writeState(baseDir string, state *protoetcd.EtcdState) error {
 		return fmt.Errorf("error marshaling state data: %w", err)
 	}
 
-	if err := os.WriteFile(p, b, 0755); err != nil {
+	if err := os.WriteFile(p, b, 0600); err != nil {
 		return fmt.Errorf("error writing state file %q: %w", p, err)
 	}
 	return nil
