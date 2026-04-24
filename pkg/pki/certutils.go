@@ -36,9 +36,14 @@ const (
 
 	// RSAPrivateKeyBlockType is a possible value for pem.Block.Type.
 	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
-
-	rsaKeySize = 4096
 )
+
+var rsaKeySize = 4096
+
+// SetRSAKeySize overrides the RSA key size used for certificate generation, for use in testing.
+func SetRSAKeySize(size int) {
+	rsaKeySize = size
+}
 
 // newPrivateKey creates an RSA private key
 func newPrivateKey() (*rsa.PrivateKey, error) {
