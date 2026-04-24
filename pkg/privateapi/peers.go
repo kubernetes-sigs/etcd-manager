@@ -29,6 +29,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/etcd-manager/pkg/contextutil"
 	"sigs.k8s.io/etcd-manager/pkg/privateapi/discovery"
@@ -298,7 +299,7 @@ func (p *peer) connect() (*grpc.ClientConn, error) {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	} else {
 		klog.Warningf("connecting to peer %q insecurely", p.id)
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	opts = append(opts, grpc.WithBackoffMaxDelay(10*time.Second))
