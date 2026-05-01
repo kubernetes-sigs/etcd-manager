@@ -414,7 +414,22 @@ func (p *etcdProcess) DoBackup(store backup.Store, info *protoetcd.BackupInfo) (
 	return DoBackup(store, info, p.DataDir, clientUrls, p.etcdClientTLSConfig)
 }
 
-// RestoreV3Snapshot calls etcdctl snapshot restore
+// snapshotRestoreCommand uses etcdutl for etcd 3.6+, where snapshot restore moved out of etcdctl.
+func (p *etcdProcess) snapshotRestoreCommand() string {
+	version, err := semver.ParseTolerant(p.EtcdVersion)
+	if err != nil {
+		klog.Warningf("error parsing version %q: %v", p.EtcdVersion, err)
+		return "etcdctl"
+	}
+
+	if version.Major > 3 || (version.Major == 3 && version.Minor >= 6) {
+		return "etcdutl"
+	}
+
+	return "etcdctl"
+}
+
+// RestoreV3Snapshot calls etcdctl or etcdutl snapshot restore
 func (p *etcdProcess) RestoreV3Snapshot(snapshotFile string) error {
 	me := p.findMyNode()
 	if me == nil {
@@ -426,7 +441,8 @@ func (p *etcdProcess) RestoreV3Snapshot(snapshotFile string) error {
 		initialCluster = append(initialCluster, node.Name+"="+strings.Join(node.PeerUrls, ","))
 	}
 
-	c := exec.Command(path.Join(p.BinDir, "etcdctl"))
+	restoreCommand := p.snapshotRestoreCommand()
+	c := exec.Command(path.Join(p.BinDir, restoreCommand))
 	c.Args = append(c.Args, "snapshot", "restore", snapshotFile)
 	c.Args = append(c.Args, "--name", me.Name)
 	c.Args = append(c.Args, "--initial-cluster", strings.Join(initialCluster, ","))
@@ -444,14 +460,14 @@ func (p *etcdProcess) RestoreV3Snapshot(snapshotFile string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	if err := c.Start(); err != nil {
-		return fmt.Errorf("error running etcdctl snapshot restore: %w", err)
+		return fmt.Errorf("error running %s snapshot restore: %w", restoreCommand, err)
 	}
 	processState, err := c.Process.Wait()
 	if err != nil {
-		return fmt.Errorf("etcdctl snapshot restore returned an error: %w", err)
+		return fmt.Errorf("%s snapshot restore returned an error: %w", restoreCommand, err)
 	}
 	if !processState.Success() {
-		return fmt.Errorf("etcdctl snapshot restore returned a non-zero exit code")
+		return fmt.Errorf("%s snapshot restore returned a non-zero exit code", restoreCommand)
 	}
 
 	klog.Infof("snapshot restore complete")
