@@ -29,6 +29,7 @@ import (
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/backup"
 	"sigs.k8s.io/etcd-manager/pkg/commands"
+	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
 	"sigs.k8s.io/etcd-manager/pkg/pki"
 )
 
@@ -147,7 +148,7 @@ func (h *TestHarness) NewNode(address string) *TestHarnessNode {
 		TestHarness: h,
 		Address:     address,
 		NodeDir:     nodeDir,
-		EtcdVersion: "3.5.7",
+		EtcdVersion: etcdversions.Latest,
 	}
 	if err := n.Init(); err != nil {
 		t.Fatalf("error initializing node: %v", err)

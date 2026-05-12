@@ -212,9 +212,6 @@ func (p *etcdProcess) Start() error {
 		env["ETCD_INITIAL_CLUSTER_STATE"] = "existing"
 	}
 
-	// Disable the etcd2 endpoint (needed for etcd <= v3.3)
-	env["ETCD_ENABLE_V2"] = "false"
-
 	env["ETCD_NAME"] = p.MyNodeName
 	if p.Cluster.ClusterToken != "" {
 		env["ETCD_INITIAL_CLUSTER_TOKEN"] = p.Cluster.ClusterToken
@@ -248,13 +245,19 @@ func (p *etcdProcess) Start() error {
 		klog.Warningf("using insecure configuration for etcd clients")
 	}
 
-	// etcd 3.5 had some corruption issues and recommends this setting,
-	// which is planned as the default in 3.6
 	version, err := semver.ParseTolerant(p.EtcdVersion)
 	if err != nil {
 		klog.Warningf("error parsing version %q: %v", p.EtcdVersion, err)
 	}
 
+	// The --enable-v2 flag was added in etcd 3.2 with default true through 3.3,
+	// flipped to false in 3.4, and removed in 3.6. Only force it off where the default is true.
+	if version.Major == 3 && (version.Minor == 2 || version.Minor == 3) {
+		env["ETCD_ENABLE_V2"] = "false"
+	}
+
+	// etcd 3.5 had some corruption issues and recommends this setting,
+	// which is the default in 3.6.
 	if version.Major == 3 && version.Minor == 5 {
 		env["ETCD_EXPERIMENTAL_INITIAL_CORRUPT_CHECK"] = "true"
 	}
@@ -452,7 +455,14 @@ func (p *etcdProcess) RestoreV3Snapshot(snapshotFile string) error {
 	klog.Infof("executing command %s %s", c.Path, c.Args)
 
 	env := make(map[string]string)
-	env["ETCDCTL_API"] = "3"
+	// etcdctl defaulted to the v2 API until etcd 3.4.
+	version, err := semver.ParseTolerant(p.EtcdVersion)
+	if err != nil {
+		klog.Warningf("error parsing version %q: %v", p.EtcdVersion, err)
+	}
+	if version.Major == 3 && version.Minor < 4 {
+		env["ETCDCTL_API"] = "3"
+	}
 	for k, v := range env {
 		c.Env = append(c.Env, k+"="+v)
 	}

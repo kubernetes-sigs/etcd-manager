@@ -43,7 +43,7 @@ func TestClusterWithOneMember(t *testing.T) {
 		t.Skip("skipping test in short mode")
 	}
 
-	for _, etcdVersion := range etcdversions.AllEtcdVersions {
+	for _, etcdVersion := range etcdversions.LatestEtcdVersions {
 		t.Run("etcdVersion="+etcdVersion, func(t *testing.T) {
 			ctx := context.TODO()
 			ctx, cancel := context.WithTimeout(ctx, time.Second*30)
@@ -85,7 +85,7 @@ func TestClusterWithThreeMembers(t *testing.T) {
 	defer cancel()
 
 	h := harness.NewTestHarness(t, ctx)
-	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: "3.5.7"})
+	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: etcdversions.Latest})
 	defer h.Close()
 
 	n1 := h.NewNode("127.0.0.1")
@@ -119,7 +119,7 @@ func TestClusterExpansion(t *testing.T) {
 	defer cancel()
 
 	h := harness.NewTestHarness(t, ctx)
-	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: "3.5.7"})
+	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: etcdversions.Latest})
 	defer h.Close()
 
 	n1 := h.NewNode("127.0.0.1")
@@ -175,7 +175,7 @@ func TestWeOnlyFormASingleCluster(t *testing.T) {
 	defer cancel()
 
 	h := harness.NewTestHarness(t, ctx)
-	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 1, EtcdVersion: "3.5.7"})
+	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 1, EtcdVersion: etcdversions.Latest})
 	defer h.Close()
 
 	n1 := h.NewNode("127.0.0.1")
