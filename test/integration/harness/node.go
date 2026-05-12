@@ -56,6 +56,7 @@ type TestHarnessNode struct {
 	ctxCancel context.CancelFunc
 
 	ClientURL      string
+	peerServer     *privateapi.Server
 	etcdServer     *etcd.EtcdServer
 	etcdController *controller.EtcdController
 
@@ -161,6 +162,7 @@ func (n *TestHarnessNode) Run() {
 	if err != nil {
 		klog.Fatalf("error building server: %v", err)
 	}
+	n.peerServer = peerServer
 
 	scheme := "https"
 	if n.InsecureMode {
@@ -261,6 +263,10 @@ func (n *TestHarnessNode) Close() error {
 		n.ctxCancel()
 		n.ctxCancel = nil
 	}
+	if n.peerServer != nil {
+		n.peerServer.GrpcServer().Stop()
+		n.peerServer = nil
+	}
 	// Stop etcd
 	if n.etcdServer != nil {
 		_, err := n.etcdServer.StopEtcdProcessForTest()
@@ -269,6 +275,35 @@ func (n *TestHarnessNode) Close() error {
 		}
 	}
 	return nil
+}
+
+func (n *TestHarnessNode) PeerID() (privateapi.PeerId, error) {
+	return privateapi.PersistentPeerId(n.NodeDir)
+}
+
+func (n *TestHarnessNode) ReplaceWithEmptyDiskSameIdentity() (privateapi.PeerId, error) {
+	peerID, err := n.PeerID()
+	if err != nil {
+		return "", err
+	}
+
+	if err := n.Close(); err != nil {
+		return "", err
+	}
+	if err := os.RemoveAll(n.NodeDir); err != nil {
+		return "", fmt.Errorf("failed to delete node directory %q: %v", n.NodeDir, err)
+	}
+	if err := os.MkdirAll(n.NodeDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to recreate node directory %q: %v", n.NodeDir, err)
+	}
+	if err := os.WriteFile(filepath.Join(n.NodeDir, "myid"), []byte(peerID), 0644); err != nil {
+		return "", fmt.Errorf("failed to seed peer id %q: %v", peerID, err)
+	}
+
+	n.etcdServer = nil
+	n.etcdController = nil
+	n.peerServer = nil
+	return peerID, nil
 }
 
 // AssertVersion asserts that the client reports the server version specified
