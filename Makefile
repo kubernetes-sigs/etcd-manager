@@ -26,23 +26,15 @@ all: test
 test:
 	go test -v -short ./...
 
-# Must match AllEtcdVersions in pkg/etcdversions/mappings.go
+# Must match LatestEtcdVersions in pkg/etcdversions/mappings.go
 .PHONY: download-etcd-versions
 download-etcd-versions:
 	dev/download-etcd.sh 3.1.12
-	dev/download-etcd.sh 3.2.18
 	dev/download-etcd.sh 3.2.24
-	dev/download-etcd.sh 3.3.10
-	dev/download-etcd.sh 3.3.13
 	dev/download-etcd.sh 3.3.17
-	dev/download-etcd.sh 3.4.3
 	dev/download-etcd.sh 3.4.13
-	dev/download-etcd.sh 3.5.0
-	dev/download-etcd.sh 3.5.1
-	dev/download-etcd.sh 3.5.3
-	dev/download-etcd.sh 3.5.4
-	dev/download-etcd.sh 3.5.6
-	dev/download-etcd.sh 3.5.7
+	dev/download-etcd.sh 3.5.30
+	dev/download-etcd.sh 3.6.11
 
 .PHONY: test-integration
 test-integration: download-etcd-versions

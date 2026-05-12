@@ -19,6 +19,7 @@ package integration
 import (
 	"testing"
 
+	"github.com/blang/semver/v4"
 	"sigs.k8s.io/etcd-manager/pkg/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
 )
@@ -28,7 +29,7 @@ func TestEtcdInstalled(t *testing.T) {
 		t.Skip("skipping test in short mode")
 	}
 
-	for _, etcdVersion := range etcdversions.AllEtcdVersions {
+	for _, etcdVersion := range etcdversions.LatestEtcdVersions {
 		t.Run("etcdVersion="+etcdVersion, func(t *testing.T) {
 			{
 				bindir, err := etcd.BindirForEtcdVersion(etcdVersion, "etcd")
@@ -46,6 +47,16 @@ func TestEtcdInstalled(t *testing.T) {
 				}
 				if bindir == "" {
 					t.Errorf("etcdctl %q did not return bindir", etcdVersion)
+				}
+			}
+			// etcd 3.6 removed `etcdctl snapshot restore`; restores require etcdutl.
+			if v, err := semver.ParseTolerant(etcdVersion); err == nil && (v.Major > 3 || (v.Major == 3 && v.Minor >= 6)) {
+				bindir, err := etcd.BindirForEtcdVersion(etcdVersion, "etcdutl")
+				if err != nil {
+					t.Errorf("etcdutl %q not installed in /opt: %v", etcdVersion, err)
+				}
+				if bindir == "" {
+					t.Errorf("etcdutl %q did not return bindir", etcdVersion)
 				}
 			}
 		})

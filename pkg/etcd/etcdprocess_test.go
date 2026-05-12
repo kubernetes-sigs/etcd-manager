@@ -24,7 +24,7 @@ func TestSnapshotRestoreCommand(t *testing.T) {
 		expected    string
 	}{
 		{
-			etcdVersion: "3.5.7",
+			etcdVersion: "3.5.30",
 			expected:    "etcdctl",
 		},
 		{
