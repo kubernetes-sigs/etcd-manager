@@ -239,7 +239,7 @@ func isSameDevice(dev1, dev2 string) bool {
 	for k1 := range aliases1 {
 		for k2 := range aliases2 {
 			if k1 == k2 {
-				klog.V(2).Infof("matched device %q and %q via %q", dev1, dev2, k1)
+				klog.V(2).Infof("matched device %q and %q via %d", dev1, dev2, k1)
 				return true
 			}
 		}
