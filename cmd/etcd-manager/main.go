@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"flag"
@@ -105,7 +106,17 @@ func main() {
 
 	flag.StringVar(&o.NetworkCIDR, "network-cidr", o.NetworkCIDR, "filter for a specific IP address by network CIDR (OpenStack only)")
 
+	var envFile string
+	flag.StringVar(&envFile, "env-file", "", "load KEY=VALUE environment variables from this file before running")
+
 	flag.Parse()
+
+	if envFile != "" {
+		if err := loadEnvFile(envFile); err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
+	}
 
 	o.VolumeTags = volumeTags
 
@@ -118,6 +129,61 @@ func main() {
 	} else {
 		os.Exit(0)
 	}
+}
+
+// loadEnvFile reads KEY=VALUE lines from path and applies them with os.Setenv.
+// Blank lines and lines beginning with '#' are ignored.
+func loadEnvFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("opening env file %q: %w", path, err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	lineNum := 0
+	for scanner.Scan() {
+		lineNum++
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			return fmt.Errorf("env file %q line %d: missing '='", path, lineNum)
+		}
+		key = strings.TrimSpace(key)
+		if key == "" {
+			return fmt.Errorf("env file %q line %d: empty key", path, lineNum)
+		}
+		if !validEnvKey(key) {
+			return fmt.Errorf("env file %q line %d: invalid key %q", path, lineNum, key)
+		}
+		if err := os.Setenv(key, value); err != nil {
+			return fmt.Errorf("env file %q line %d: setenv %s: %w", path, lineNum, key, err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("reading env file %q: %w", path, err)
+	}
+	return nil
+}
+
+// validEnvKey reports whether key matches the portable environment-variable name
+// charset [A-Za-z_][A-Za-z0-9_]*, which also rejects internal whitespace.
+func validEnvKey(key string) bool {
+	for i := 0; i < len(key); i++ {
+		c := key[i]
+		switch {
+		case c == '_':
+		case c >= 'a' && c <= 'z':
+		case c >= 'A' && c <= 'Z':
+		case c >= '0' && c <= '9' && i > 0:
+		default:
+			return false
+		}
+	}
+	return key != ""
 }
 
 func expandUrls(urls string, address string, name string) []string {
