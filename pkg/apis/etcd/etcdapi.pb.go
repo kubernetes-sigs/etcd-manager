@@ -338,6 +338,7 @@ type GetInfoResponse struct {
 	ClusterName       string                 `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
 	NodeConfiguration *EtcdNode              `protobuf:"bytes,5,opt,name=node_configuration,json=nodeConfiguration,proto3" json:"node_configuration,omitempty"`
 	EtcdState         *EtcdState             `protobuf:"bytes,6,opt,name=etcd_state,json=etcdState,proto3" json:"etcd_state,omitempty"`
+	DiskEmpty         bool                   `protobuf:"varint,7,opt,name=disk_empty,json=diskEmpty,proto3" json:"disk_empty,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -391,6 +392,13 @@ func (x *GetInfoResponse) GetEtcdState() *EtcdState {
 		return x.EtcdState
 	}
 	return nil
+}
+
+func (x *GetInfoResponse) GetDiskEmpty() bool {
+	if x != nil {
+		return x.DiskEmpty
+	}
+	return false
 }
 
 type UpdateEndpointsRequest struct {
@@ -1431,12 +1439,14 @@ const file_pkg_apis_etcd_etcdapi_proto_rawDesc = "" +
 	"\x06backup\x18\x03 \x01(\tR\x06backup\"O\n" +
 	"\x17CreateNewClusterCommand\x124\n" +
 	"\fcluster_spec\x18\x01 \x01(\v2\x11.etcd.ClusterSpecR\vclusterSpec\"\x10\n" +
-	"\x0eGetInfoRequest\"\xa3\x01\n" +
+	"\x0eGetInfoRequest\"\xc2\x01\n" +
 	"\x0fGetInfoResponse\x12!\n" +
 	"\fcluster_name\x18\x02 \x01(\tR\vclusterName\x12=\n" +
 	"\x12node_configuration\x18\x05 \x01(\v2\x0e.etcd.EtcdNodeR\x11nodeConfiguration\x12.\n" +
 	"\n" +
-	"etcd_state\x18\x06 \x01(\v2\x0f.etcd.EtcdStateR\tetcdState\"H\n" +
+	"etcd_state\x18\x06 \x01(\v2\x0f.etcd.EtcdStateR\tetcdState\x12\x1d\n" +
+	"\n" +
+	"disk_empty\x18\a \x01(\bR\tdiskEmpty\"H\n" +
 	"\x16UpdateEndpointsRequest\x12.\n" +
 	"\n" +
 	"member_map\x18\x01 \x01(\v2\x0f.etcd.MemberMapR\tmemberMap\":\n" +
