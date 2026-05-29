@@ -26,6 +26,7 @@ import (
 	"k8s.io/klog/v2"
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
 	"sigs.k8s.io/etcd-manager/pkg/etcdclient"
+	"sigs.k8s.io/etcd-manager/pkg/etcdversions"
 	"sigs.k8s.io/etcd-manager/test/integration/harness"
 )
 
@@ -39,7 +40,7 @@ func TestEmptyDiskReplacementRecovery(t *testing.T) {
 	defer cancel()
 
 	h := harness.NewTestHarness(t, ctx)
-	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: "3.5.7"})
+	h.SeedNewCluster(&protoetcd.ClusterSpec{MemberCount: 3, EtcdVersion: etcdversions.Latest})
 	defer h.Close()
 
 	n1 := h.NewNode("127.0.0.1")

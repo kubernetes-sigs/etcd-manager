@@ -44,18 +44,35 @@ func (c diskReplacementCandidate) String() string {
 	return fmt.Sprintf("peer=%q memberID=%q memberName=%q", c.peerID, c.memberID, c.member.Name)
 }
 
+// maybeRemoveStaleMemberForEmptyDiskReplacement recovers a peer that has rejoined
+// with an empty disk under the same identity as an existing etcd member (e.g. after
+// the underlying volume was lost and recreated). It removes the now-stale member so
+// the normal add-member path can re-add the peer and resync it from the leader on the
+// next cycle.
+//
+// Because this mutates cluster membership, it only acts from a healthy, settled
+// cluster. It no-ops unless all of these preconditions hold:
+//   - the cluster is meant to have at least 3 members, so quorum tolerates the removal;
+//   - no peers are on a mismatched etcd version;
+//   - no members are quarantined;
+//   - the observed member count matches the desired count; and
+//   - a healthy quorum is present.
 func (m *EtcdController) maybeRemoveStaleMemberForEmptyDiskReplacement(ctx context.Context, clusterSpec *protoetcd.ClusterSpec, clusterState *etcdClusterState, versionMismatch []*etcdClusterPeerInfo, quarantinedMembers int) (bool, error) {
 	desiredMemberCount := int(clusterSpec.MemberCount)
 	if desiredMemberCount < 3 {
+		klog.V(2).Infof("skipping empty disk replacement recovery: desired member count %d is below 3", desiredMemberCount)
 		return false, nil
 	}
 	if len(versionMismatch) != 0 {
+		klog.V(2).Infof("skipping empty disk replacement recovery: %d peers have a version mismatch", len(versionMismatch))
 		return false, nil
 	}
 	if quarantinedMembers != 0 {
+		klog.V(2).Infof("skipping empty disk replacement recovery: %d members are quarantined", quarantinedMembers)
 		return false, nil
 	}
 	if len(clusterState.members) != desiredMemberCount {
+		klog.V(2).Infof("skipping empty disk replacement recovery: observed %d members, want %d", len(clusterState.members), desiredMemberCount)
 		return false, nil
 	}
 	if len(clusterState.healthyMembers) < quorumSize(len(clusterState.members)) {
@@ -65,6 +82,7 @@ func (m *EtcdController) maybeRemoveStaleMemberForEmptyDiskReplacement(ctx conte
 
 	candidate := m.findDiskReplacementCandidate(clusterState)
 	if candidate == nil {
+		klog.V(2).Infof("skipping empty disk replacement recovery: no replacement candidate found")
 		return false, nil
 	}
 
@@ -157,21 +175,17 @@ func (m *EtcdController) findDiskReplacementCandidate(clusterState *etcdClusterS
 	}
 
 	if len(candidates) > 1 {
-		klog.Warningf("found multiple empty disk replacement candidates (%s); replacement recovery is ambiguous and will no-op", formatDiskReplacementCandidates(candidates))
+		var parts []string
+		for _, candidate := range candidates {
+			parts = append(parts, candidate.String())
+		}
+		klog.Warningf("found multiple empty disk replacement candidates (%s); replacement recovery is ambiguous and will no-op", strings.Join(parts, ", "))
 		return nil
 	}
 	if len(candidates) == 0 {
 		return nil
 	}
 	return &candidates[0]
-}
-
-func formatDiskReplacementCandidates(candidates []diskReplacementCandidate) string {
-	var parts []string
-	for _, candidate := range candidates {
-		parts = append(parts, candidate.String())
-	}
-	return strings.Join(parts, ", ")
 }
 
 func (m *EtcdController) hasEtcdLeader(ctx context.Context, clusterState *etcdClusterState) bool {
