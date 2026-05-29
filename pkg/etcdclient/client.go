@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 	"strings"
 	"time"
 
+	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	"go.etcd.io/etcd/api/v3/version"
 	etcd_client_v3 "go.etcd.io/etcd/client/v3"
 	"k8s.io/klog/v2"
@@ -252,6 +254,10 @@ func (c *EtcdClient) LeaderID(ctx context.Context) (string, error) {
 
 func (c *EtcdClient) AddMember(ctx context.Context, peerURLs []string) error {
 	_, err := c.cluster.MemberAdd(ctx, peerURLs)
+	// A prior attempt may have committed the add; treat an already-present member as success.
+	if errors.Is(err, rpctypes.ErrMemberExist) || errors.Is(err, rpctypes.ErrPeerURLExist) {
+		return nil
+	}
 	return err
 }
 
@@ -262,6 +268,10 @@ func (c *EtcdClient) SetPeerURLs(ctx context.Context, member *EtcdProcessMember,
 
 func (c *EtcdClient) RemoveMember(ctx context.Context, member *EtcdProcessMember) error {
 	_, err := c.cluster.MemberRemove(ctx, member.idv3)
+	// A prior attempt may have committed the removal; treat an already-removed member as success.
+	if errors.Is(err, rpctypes.ErrMemberNotFound) {
+		return nil
+	}
 	return err
 }
 
