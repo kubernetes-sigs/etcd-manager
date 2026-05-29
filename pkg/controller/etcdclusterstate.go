@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"time"
 
 	"k8s.io/klog/v2"
 	protoetcd "sigs.k8s.io/etcd-manager/pkg/apis/etcd"
@@ -124,6 +125,9 @@ func (s *etcdClusterState) newEtcdClient(member *etcdclient.EtcdProcessMember) (
 	return etcdClient, err
 }
 
+// memberReconfigureTimeout bounds one etcd membership RPC so a dead member can't drain the budget.
+const memberReconfigureTimeout = 10 * time.Second
+
 func (s *etcdClusterState) etcdAddMember(ctx context.Context, nodeInfo *protoetcd.EtcdNode) (*etcdclient.EtcdProcessMember, error) {
 	for _, member := range s.members {
 		etcdClient, err := s.newEtcdClient(member)
@@ -132,7 +136,9 @@ func (s *etcdClusterState) etcdAddMember(ctx context.Context, nodeInfo *protoetc
 			continue
 		}
 
-		err = etcdClient.AddMember(ctx, nodeInfo.PeerUrls)
+		attemptCtx, cancel := context.WithTimeout(ctx, memberReconfigureTimeout)
+		err = etcdClient.AddMember(attemptCtx, nodeInfo.PeerUrls)
+		cancel()
 		etcdclient.LoggedClose(etcdClient)
 		if err != nil {
 			klog.Warningf("unable to add member %s on peer %s: %v", nodeInfo.PeerUrls, member.Name, err)
@@ -152,7 +158,9 @@ func (s *etcdClusterState) etcdRemoveMember(ctx context.Context, nodeInfo *etcdc
 			continue
 		}
 
-		err = etcdClient.RemoveMember(ctx, nodeInfo)
+		attemptCtx, cancel := context.WithTimeout(ctx, memberReconfigureTimeout)
+		err = etcdClient.RemoveMember(attemptCtx, nodeInfo)
+		cancel()
 		etcdclient.LoggedClose(etcdClient)
 		if err != nil {
 			klog.Warningf("Remove member call failed on %s: %v", id, err)
