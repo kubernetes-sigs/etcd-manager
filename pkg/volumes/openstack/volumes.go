@@ -36,6 +36,8 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
 	utilexec "k8s.io/utils/exec"
+	"sigs.k8s.io/etcd-manager/pkg/hostexec"
+	"sigs.k8s.io/etcd-manager/pkg/sysmount"
 	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
@@ -89,9 +91,15 @@ type OpenstackVolumes struct {
 type MetadataService struct {
 	serviceURL      string
 	configDrivePath string
-	mounter         *mount.SafeFormatAndMount
+	mounter         configDriveMounter
+	exec            utilexec.Interface
 	mountTarget     string
 	searchOrder     string
+}
+
+type configDriveMounter interface {
+	Mount(source string, target string, fstype string, options []string) error
+	Unmount(target string) error
 }
 
 var _ volumes.Volumes = &OpenstackVolumes{}
@@ -142,7 +150,7 @@ func NewOpenstackVolumes(clusterName string, volumeTags []string, nameTag string
 func (mds MetadataService) getFromConfigDrive() (*InstanceMetadata, error) {
 	dev := path.Join(volumes.PathFor("/dev/disk/by-label/"), ConfigDriveLabel)
 	if _, err := os.Stat(dev); os.IsNotExist(err) {
-		out, err := mds.mounter.Exec.Command(
+		out, err := mds.exec.Command(
 			"blkid", "-l",
 			"-t", fmt.Sprintf("LABEL=%s", ConfigDriveLabel),
 			"-o", "device",
@@ -151,6 +159,9 @@ func (mds MetadataService) getFromConfigDrive() (*InstanceMetadata, error) {
 			return nil, fmt.Errorf("unable to run blkid: %v", err)
 		}
 		dev = strings.TrimSpace(string(out))
+		if volumes.Containerized && strings.HasPrefix(dev, "/") {
+			dev = volumes.PathFor(dev)
+		}
 	}
 
 	err := mds.mounter.Mount(dev, mds.mountTarget, "iso9660", []string{"ro"})
@@ -238,24 +249,28 @@ func (mds MetadataService) getMetadata() (*InstanceMetadata, error) {
 	return meta, err
 }
 
-func newMetadataService(serviceURL string, configDrivePath string, mounter *mount.SafeFormatAndMount, mountTarget string, searchOrder string) *MetadataService {
+func newMetadataService(serviceURL string, configDrivePath string, mounter configDriveMounter, exec utilexec.Interface, mountTarget string, searchOrder string) *MetadataService {
 	return &MetadataService{
 		serviceURL:      serviceURL,
 		configDrivePath: configDrivePath,
 		mounter:         mounter,
+		exec:            exec,
 		mountTarget:     mountTarget,
 		searchOrder:     searchOrder,
 	}
 }
 
 // getDefaultMounter returns a mount and executor interface to use for getting metadata from a config drive
-func getDefaultMounter() *mount.SafeFormatAndMount {
-	mounter := mount.New("")
-	exec := utilexec.New()
-	return &mount.SafeFormatAndMount{
-		Interface: mounter,
-		Exec:      exec,
+func getDefaultMounter() (configDriveMounter, utilexec.Interface, error) {
+	if volumes.Containerized {
+		exec, err := hostexec.New(volumes.PathFor("/"))
+		if err != nil {
+			return nil, nil, err
+		}
+		return sysmount.New(), exec, nil
 	}
+
+	return mount.New(""), utilexec.New(), nil
 }
 
 func getLocalMetadata() (*InstanceMetadata, error) {
@@ -265,7 +280,12 @@ func getLocalMetadata() (*InstanceMetadata, error) {
 	}
 	defer os.Remove(mountTarget)
 
-	return newMetadataService(MetadataLatestServiceURL, MetadataLatestPath, getDefaultMounter(), mountTarget, DefaultMetadataSearchOrder).getMetadata()
+	mounter, exec, err := getDefaultMounter()
+	if err != nil {
+		return nil, err
+	}
+
+	return newMetadataService(MetadataLatestServiceURL, MetadataLatestPath, mounter, exec, mountTarget, DefaultMetadataSearchOrder).getMetadata()
 }
 
 func getCredential() (gophercloud.AuthOptions, string, bool, error) {
@@ -508,7 +528,7 @@ func findDevicePath(volumeID string) (string, error) {
 // see issue https://github.com/kubernetes/cloud-provider-openstack/issues/705
 func probeVolume() error {
 	// rescan scsi bus
-	scsiPath := "/sys/class/scsi_host/"
+	scsiPath := volumes.PathFor("/sys/class/scsi_host/")
 	if dirs, err := os.ReadDir(scsiPath); err == nil {
 		for _, f := range dirs {
 			name := scsiPath + f.Name() + "/scan"
@@ -518,6 +538,13 @@ func probeVolume() error {
 	}
 
 	executor := utilexec.New()
+	if volumes.Containerized {
+		var err error
+		executor, err = hostexec.New(volumes.PathFor("/"))
+		if err != nil {
+			return err
+		}
+	}
 	args := []string{"trigger"}
 	cmd := executor.Command("udevadm", args...)
 	_, err := cmd.CombinedOutput()

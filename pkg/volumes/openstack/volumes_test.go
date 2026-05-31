@@ -110,17 +110,14 @@ func fakeBlkidCmd(device string) uet.FakeCommandAction {
 }
 
 // getFakeMounter creates and returns a fake mounter to test getting the metadata from a config drive
-func getFakeMounter(device string) *mount.SafeFormatAndMount {
+func getFakeMounter(device string) (configDriveMounter, ue.Interface) {
 	fakeExec := &uet.FakeExec{
 		ExactOrder: true,
 	}
 
 	fakeExec.CommandScript = append(fakeExec.CommandScript, fakeBlkidCmd(device))
 
-	return &mount.SafeFormatAndMount{
-		Interface: &mount.FakeMounter{},
-		Exec:      fakeExec,
-	}
+	return &mount.FakeMounter{}, fakeExec
 }
 
 func TestGetMetadataFromMetadataServiceReturnsNotFoundError(t *testing.T) {
@@ -133,7 +130,7 @@ func TestGetMetadataFromMetadataServiceReturnsNotFoundError(t *testing.T) {
 
 	expectedErr := fmt.Errorf("fetching metadata from '%s' returned status code '404'", metadataUrl)
 
-	_, actualErr := newMetadataService(metadataUrl, MetadataLatestPath, nil, "", MetadataID).getMetadata()
+	_, actualErr := newMetadataService(metadataUrl, MetadataLatestPath, nil, nil, "", MetadataID).getMetadata()
 
 	assertTestResults(t, nil, expectedErr, actualErr)
 }
@@ -146,31 +143,31 @@ func TestGetMetadataFromMetadataService(t *testing.T) {
 	defer mockServer.Close()
 	metadataUrl := fmt.Sprintf("%s/%s", mockServer.URL, MetadataLatestPath)
 
-	actual, err := newMetadataService(metadataUrl, MetadataLatestPath, nil, "", MetadataID).getMetadata()
+	actual, err := newMetadataService(metadataUrl, MetadataLatestPath, nil, nil, "", MetadataID).getMetadata()
 
 	assertTestResults(t, err, expectedServiceMetadata, actual)
 }
 
 func TestGetMetadataFromConfigDriveReturnsErrorWhenNoDeviceIsFound(t *testing.T) {
-	fakeMounter := getFakeMounter("")
+	fakeMounter, fakeExec := getFakeMounter("")
 
 	expectedErr := fmt.Errorf("unable to run blkid: exit 2")
 
-	_, actualErr := newMetadataService("", "testdata/metadata_drive.json", fakeMounter, ".", ConfigDriveID).getMetadata()
+	_, actualErr := newMetadataService("", "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", ConfigDriveID).getMetadata()
 
 	assertTestResults(t, nil, expectedErr, actualErr)
 }
 
 func TestGetMetadataFromConfigDrive(t *testing.T) {
-	fakeMounter := getFakeMounter("/dev/sr0")
+	fakeMounter, fakeExec := getFakeMounter("/dev/sr0")
 
-	actual, err := newMetadataService("", "testdata/metadata_drive.json", fakeMounter, ".", ConfigDriveID).getMetadata()
+	actual, err := newMetadataService("", "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", ConfigDriveID).getMetadata()
 
 	assertTestResults(t, err, expectedDriveMetadata, actual)
 }
 
 func TestGetMetadataReturnsLastErrorWhenNoMetadataWasFound(t *testing.T) {
-	fakeMounter := getFakeMounter("")
+	fakeMounter, fakeExec := getFakeMounter("")
 
 	mockServer, err := createMockServer()
 	if err != nil {
@@ -181,13 +178,13 @@ func TestGetMetadataReturnsLastErrorWhenNoMetadataWasFound(t *testing.T) {
 
 	expectedErr := fmt.Errorf("fetching metadata from '%s' returned status code '404'", metadataUrl)
 
-	_, actualErr := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, ".", configDriveIDFirst).getMetadata()
+	_, actualErr := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", configDriveIDFirst).getMetadata()
 
 	assertTestResults(t, nil, expectedErr, actualErr)
 }
 
 func TestGetMetadataFromConfigDriveWhenItIsFirstInSearchOrder(t *testing.T) {
-	fakeMounter := getFakeMounter("/dev/sr0")
+	fakeMounter, fakeExec := getFakeMounter("/dev/sr0")
 
 	mockServer, err := createMockServer()
 	if err != nil {
@@ -196,13 +193,13 @@ func TestGetMetadataFromConfigDriveWhenItIsFirstInSearchOrder(t *testing.T) {
 	defer mockServer.Close()
 	metadataUrl := fmt.Sprintf("%s/%s", mockServer.URL, MetadataLatestPath)
 
-	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, ".", configDriveIDFirst).getMetadata()
+	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", configDriveIDFirst).getMetadata()
 
 	assertTestResults(t, err, expectedDriveMetadata, actual)
 }
 
 func TestGetMetadataFromServiceEndpointWhenConfigDriveFails(t *testing.T) {
-	fakeMounter := getFakeMounter("")
+	fakeMounter, fakeExec := getFakeMounter("")
 
 	mockServer, err := createMockServer()
 	if err != nil {
@@ -211,13 +208,13 @@ func TestGetMetadataFromServiceEndpointWhenConfigDriveFails(t *testing.T) {
 	defer mockServer.Close()
 	metadataUrl := fmt.Sprintf("%s/%s", mockServer.URL, MetadataLatestPath)
 
-	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, ".", configDriveIDFirst).getMetadata()
+	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", configDriveIDFirst).getMetadata()
 
 	assertTestResults(t, err, expectedServiceMetadata, actual)
 }
 
 func TestGetMetadataFromServiceEndpointWhenItIsFirstInSearchOrder(t *testing.T) {
-	fakeMounter := getFakeMounter("/dev/sr0")
+	fakeMounter, fakeExec := getFakeMounter("/dev/sr0")
 
 	mockServer, err := createMockServer()
 	if err != nil {
@@ -226,13 +223,13 @@ func TestGetMetadataFromServiceEndpointWhenItIsFirstInSearchOrder(t *testing.T) 
 	defer mockServer.Close()
 	metadataUrl := fmt.Sprintf("%s/%s", mockServer.URL, MetadataLatestPath)
 
-	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, ".", metadataIDFirst).getMetadata()
+	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", metadataIDFirst).getMetadata()
 
 	assertTestResults(t, err, expectedServiceMetadata, actual)
 }
 
 func TestGetMetadataFromConfigDriveWhenServiceEndpointFails(t *testing.T) {
-	fakeMounter := getFakeMounter("/dev/sr0")
+	fakeMounter, fakeExec := getFakeMounter("/dev/sr0")
 
 	mockServer, err := createMockServer()
 	if err != nil {
@@ -241,7 +238,7 @@ func TestGetMetadataFromConfigDriveWhenServiceEndpointFails(t *testing.T) {
 	defer mockServer.Close()
 	metadataUrl := fmt.Sprintf("%s/%s", mockServer.URL, "no/meta_data.json")
 
-	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, ".", metadataIDFirst).getMetadata()
+	actual, err := newMetadataService(metadataUrl, "testdata/metadata_drive.json", fakeMounter, fakeExec, ".", metadataIDFirst).getMetadata()
 
 	assertTestResults(t, err, expectedDriveMetadata, actual)
 }

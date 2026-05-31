@@ -21,16 +21,17 @@ package hostmount
 
 import (
 	"fmt"
+
 	"k8s.io/mount-utils"
-	"k8s.io/utils/nsenter"
+	"sigs.k8s.io/etcd-manager/pkg/hostexec"
 )
 
-func New(ne *nsenter.Nsenter) *Mounter {
-	return &Mounter{ne: ne}
+func New(rootfs string, exec *hostexec.Executor) *Mounter {
+	return &Mounter{exec: exec}
 }
 
 type Mounter struct {
-	ne *nsenter.Nsenter
+	exec *hostexec.Executor
 	mount.Interface
 }
 
