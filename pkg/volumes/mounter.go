@@ -25,8 +25,9 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
 	utilexec "k8s.io/utils/exec"
-	"k8s.io/utils/nsenter"
+	"sigs.k8s.io/etcd-manager/pkg/hostexec"
 	"sigs.k8s.io/etcd-manager/pkg/hostmount"
+	"sigs.k8s.io/etcd-manager/pkg/sysmount"
 )
 
 type VolumeMountController struct {
@@ -128,18 +129,19 @@ func (k *VolumeMountController) safeFormatAndMount(volume *Volume, mountpoint st
 	resize := &mount.ResizeFs{}
 
 	if Containerized {
-		ne, err := nsenter.NewNsenter(PathFor("/"), utilexec.New())
+		rootfs := PathFor("/")
+		hostExec, err := hostexec.New(rootfs)
 		if err != nil {
-			return fmt.Errorf("error building ns-enter helper: %v", err)
+			return fmt.Errorf("error building host exec helper: %v", err)
 		}
 
 		// Build mount & exec & resize implementations that execute in the host namespaces
-		safeFormatAndMount.Interface = hostmount.New(ne)
-		safeFormatAndMount.Exec = ne
-		resize = mount.NewResizeFs(ne)
+		safeFormatAndMount.Interface = hostmount.New(rootfs, hostExec)
+		safeFormatAndMount.Exec = hostExec
+		resize = mount.NewResizeFs(hostExec)
 
 		// Note that we don't use PathFor for operations going through safeFormatAndMount,
-		// because NewNsenterMounter and NewNsEnterExec will operate in the host
+		// because hostmount and hostexec will operate in the host.
 	} else {
 		ue := utilexec.New()
 		safeFormatAndMount.Interface = mount.New("")
@@ -222,13 +224,38 @@ func (k *VolumeMountController) safeFormatAndMount(volume *Volume, mountpoint st
 			}
 		} else {
 			klog.Infof("mounting inside container: %s -> %s", source, target)
-			if err := mounter.Mount(source, target, fstype, options); err != nil {
+			containerFSType, err := containerMountFSType(safeFormatAndMount.Interface, mountpoint, fstype)
+			if err != nil {
+				return err
+			}
+			if err := sysmount.Mount(source, target, containerFSType, options); err != nil {
 				return fmt.Errorf("error mounting %s inside container at %s: %v", source, target, err)
 			}
 		}
 	}
 
 	return nil
+}
+
+func containerMountFSType(mounter mount.Interface, mountpoint, fstype string) (string, error) {
+	if fstype != "" {
+		return fstype, nil
+	}
+
+	mounts, err := mounter.List()
+	if err != nil {
+		return "", fmt.Errorf("error listing mounts to detect filesystem type for %s: %v", mountpoint, err)
+	}
+	for i := range mounts {
+		m := &mounts[i]
+		if m.Path == mountpoint {
+			if m.Type == "" {
+				return "", fmt.Errorf("mount %s has no filesystem type", mountpoint)
+			}
+			return m.Type, nil
+		}
+	}
+	return "", fmt.Errorf("unable to find mounted filesystem type for %s", mountpoint)
 }
 
 // Checks if l and r are the same device.  We tolerate /dev/X vs /rootfs/dev/X, and we also dereference symlinks

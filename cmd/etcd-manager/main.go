@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/etcd-manager/pkg/commands"
 	"sigs.k8s.io/etcd-manager/pkg/controller"
 	"sigs.k8s.io/etcd-manager/pkg/etcd"
+	"sigs.k8s.io/etcd-manager/pkg/hostexec"
 	"sigs.k8s.io/etcd-manager/pkg/hosts"
 	"sigs.k8s.io/etcd-manager/pkg/locking"
 	"sigs.k8s.io/etcd-manager/pkg/metrics"
@@ -69,6 +70,10 @@ func (v *stringSliceFlag) Set(value string) error {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == hostexec.HelperCommand {
+		os.Exit(hostexec.Run(os.Args[2:]))
+	}
+
 	klog.InitFlags(nil)
 
 	flag.BoolVar(&volumes.Containerized, "containerized", volumes.Containerized, "set if we are running containerized")
