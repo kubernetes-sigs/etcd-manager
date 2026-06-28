@@ -109,18 +109,16 @@ func (p *etcdProcess) createKeypairs(peersCA *pki.CA, clientsCA *pki.CA, pkiDir 
 		if err != nil {
 			return err
 		}
-	} else {
-		klog.Warningf("not generating client keypair as clients-ca not set")
-	}
 
-	if clientsCA != nil {
-		keypairs := pki.NewKeypairs(pki.NewInMemoryStore(), clientsCA)
-
+		// Build the client TLS config from the on-disk store (not an in-memory one) so the expensive
+		// RSA client key is generated once and reused across restarts instead of on every start.
 		c, err := BuildTLSClientConfig(keypairs, me.Name)
 		if err != nil {
 			return err
 		}
 		p.etcdClientTLSConfig = c
+	} else {
+		klog.Warningf("not generating client keypair as clients-ca not set")
 	}
 
 	return nil

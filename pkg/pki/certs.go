@@ -37,10 +37,10 @@ import (
 // it to two years, with kubernetes LTS proposing one year's support.
 var CertDuration = 2 * 365 * 24 * time.Hour
 
-// CertMinTimeLeft is the minimum amount of validity required on
-// a certificate to reuse it.  Because we set this (much) higher than
-// CertDuration, we will now always reissue certificates.
-var CertMinTimeLeft = 20 * 365 * 24 * time.Hour
+// CertMinTimeLeft is the minimum validity a certificate must have left for us to reuse it; once
+// less remains we renew it. It must be shorter than CertDuration, otherwise a freshly-issued
+// certificate looks like it is expiring and gets reissued on every start.
+var CertMinTimeLeft = CertDuration / 3
 
 // ParseHumanDuration parses a go-style duration string, but
 // recognizes additional suffixes: d means "day" and is interpreted as
@@ -75,6 +75,9 @@ func init() {
 			klog.Fatalf("failed to parse ETCD_MANAGER_CERT_DURATION=%q", s)
 		}
 		CertDuration = v
+		// Keep the renewal threshold proportional to the overridden lifetime; an explicit
+		// ETCD_MANAGER_CERT_MIN_TIME_LEFT below still wins.
+		CertMinTimeLeft = CertDuration / 3
 	}
 
 	if s := os.Getenv("ETCD_MANAGER_CERT_MIN_TIME_LEFT"); s != "" {
@@ -146,6 +149,15 @@ func ensureKeypair(store MutableKeypair, config certutil.Config, signer *CA) (*K
 			cert := keypair.Certificate
 
 			match := true
+
+			// Reuse the certificate only if it still chains to the current CA; after a CA rotation
+			// (or if it was issued by a different CA) it would fail validation, so reissue it.
+			if match {
+				if err := cert.CheckSignatureFrom(signer.primaryCertificate); err != nil {
+					klog.Infof("existing certificate for %q is not signed by the current CA; will regenerate", p)
+					match = false
+				}
+			}
 
 			if match && time.Until(cert.NotAfter) <= CertMinTimeLeft {
 				klog.Infof("existing certificate not valid after %s; will regenerate", cert.NotAfter.Format(time.RFC3339))
