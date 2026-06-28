@@ -254,8 +254,12 @@ func (m *EtcdController) run(ctx context.Context) (bool, error) {
 		// TODO: How do we lose leadership
 		m.peerState = make(map[privateapi.PeerId]*peerState)
 
-		// Wait one cycle after a new leader election
-		return false, nil
+		// Normally we wait a cycle after a leader election so our leadership claim can propagate.
+		// A single-member cluster with no leader lock has no competing leader, so skip that wait.
+		spec := m.getControlClusterSpec()
+		if m.leaderLock != nil || spec == nil || spec.MemberCount != 1 {
+			return false, nil
+		}
 	}
 
 	{
