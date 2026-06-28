@@ -98,6 +98,9 @@ func NewServer(ctx context.Context, myInfo *PeerInfo, serverTLSConfig *tls.Confi
 
 	s.grpcServer = grpc.NewServer(opts...)
 
+	// Register ourselves as a peer immediately, so Peers() includes us without waiting for discovery.
+	s.addSelf()
+
 	return s, nil
 }
 

@@ -614,10 +614,9 @@ func RunEtcdManager(o *EtcdManagerOptions) error {
 	if err != nil {
 		return fmt.Errorf("error building etcd controller: %v", err)
 	}
-	go func() {
-		time.Sleep(2 * time.Second) // Gives a bit of time for discovery to run first
-		c.Run(ctx)
-	}()
+	// Self is seeded into the peer set at construction (NewServer), so the controller finds itself on
+	// its first run; no need to wait for discovery.
+	go c.Run(ctx)
 
 	if err := peerServer.ListenAndServe(ctx, grpcEndpoint); err != nil {
 		if ctx.Err() == nil {

@@ -128,6 +128,25 @@ func (s *Server) updateFromDiscovery(discoveryNode discovery.Node) {
 	}
 }
 
+// addSelf registers our identity as a peer immediately and marks it healthy, so Peers() includes us
+// without waiting for discovery to report us back. A loopback self-ping keeps it healthy, like any
+// discovered peer; other peers still come only from discovery.
+func (s *Server) addSelf() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	id := PeerId(s.myInfo.Id)
+	klog.Infof("adding self as peer: %s %v", id, s.myInfo.Endpoints)
+	self := &peer{
+		server:      s,
+		id:          id,
+		defaultPort: s.defaultPort,
+	}
+	self.updatePeerInfo(s.myInfo)
+	s.peers[id] = self
+	go self.Run(s.context, s.PingInterval)
+}
+
 func (s *Server) runDiscoveryOnce() error {
 	nodes, err := s.discovery.Poll()
 	if err != nil {
