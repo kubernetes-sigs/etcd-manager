@@ -74,8 +74,8 @@ func NewHetznerVolumes(clusterName string, volumeTags []string, nameTag string) 
 	}
 
 	klog.V(2).Infof("Found name of the running server: %q", server.Name)
-	if server.Datacenter != nil && server.Datacenter.Location != nil {
-		klog.V(2).Infof("Found location of the running server: %q", server.Datacenter.Location.Name)
+	if server.Location != nil {
+		klog.V(2).Infof("Found location of the running server: %q", server.Location.Name)
 	} else {
 		return nil, fmt.Errorf("failed to find location of the running server")
 	}
@@ -120,10 +120,10 @@ func NewHetznerVolumes(clusterName string, volumeTags []string, nameTag string) 
 func (a *HetznerVolumes) FindVolumes() ([]*volumes.Volume, error) {
 	klog.V(2).Infof("Finding attachable etcd volumes")
 
-	if a.server.Datacenter == nil || a.server.Datacenter.Location == nil {
+	if a.server.Location == nil {
 		return nil, fmt.Errorf("failed to find server location for the running server")
 	}
-	serverLocation := a.server.Datacenter.Location.Name
+	serverLocation := a.server.Location.Name
 
 	matchingVolumes, err := getMatchingVolumes(a.hcloudClient, a.matchNameTags)
 	if err != nil {
