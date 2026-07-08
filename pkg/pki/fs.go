@@ -18,7 +18,7 @@ package pki
 
 import (
 	"bytes"
-	"crypto/rsa"
+	"crypto"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -60,7 +60,7 @@ func (s *MutableKeypairFromFile) MutateKeypair(mutator func(keypair *Keypair) er
 		return nil, err
 	}
 
-	if original.PrivateKey == nil || !original.PrivateKey.Equal(keypair.PrivateKey) {
+	if original.PrivateKey == nil || !privateKeysEqual(original.PrivateKey, keypair.PrivateKey) {
 		if err := writePrivateKey(s.PrivateKeyPath, keypair.PrivateKey); err != nil {
 			return nil, err
 		}
@@ -94,7 +94,18 @@ func (s *FSStore) Keypair(name string) MutableKeypair {
 	}
 }
 
-func writePrivateKey(path string, privateKey *rsa.PrivateKey) error {
+// privateKeysEqual compares two private keys using their Equal method.
+func privateKeysEqual(a, b crypto.Signer) bool {
+	key, ok := a.(interface{ Equal(x crypto.PrivateKey) bool })
+	return ok && key.Equal(b)
+}
+
+func writePrivateKey(path string, privateKey crypto.Signer) error {
+	keyBytes, err := keyutil.MarshalPrivateKeyToPEM(privateKey)
+	if err != nil {
+		return fmt.Errorf("marshalling private key for %q: %w", path, err)
+	}
+
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("creating directories for private key file %q: %w", path, err)
 	}
@@ -104,8 +115,7 @@ func writePrivateKey(path string, privateKey *rsa.PrivateKey) error {
 		return fmt.Errorf("opening private key file %q: %w", path, err)
 	}
 
-	err = pem.Encode(f, &pem.Block{Type: RSAPrivateKeyBlockType, Bytes: x509.MarshalPKCS1PrivateKey(privateKey)})
-	if err != nil {
+	if _, err := f.Write(keyBytes); err != nil {
 		_ = f.Close()
 		return fmt.Errorf("writing private key file %q: %w", path, err)
 	}
@@ -167,7 +177,10 @@ func (s *FSStore) LoadCA(name string) (*CA, error) {
 		return bytes.Compare(ca.certificates[i].Raw, ca.certificates[j].Raw) < 0
 	})
 
-	publicKey := ca.privateKey.PublicKey
+	publicKey, ok := ca.privateKey.Public().(interface{ Equal(x crypto.PublicKey) bool })
+	if !ok {
+		return nil, fmt.Errorf("unexpected public key type for %s: %T", name, ca.privateKey.Public())
+	}
 	for _, cert := range ca.certificates {
 		if publicKey.Equal(cert.PublicKey) {
 			ca.primaryCertificate = cert
@@ -182,7 +195,7 @@ func (s *FSStore) LoadCA(name string) (*CA, error) {
 	return ca, nil
 }
 
-func loadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
+func loadPrivateKey(privateKeyPath string) (crypto.Signer, error) {
 	privateKeyBytes, err := os.ReadFile(privateKeyPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -198,11 +211,11 @@ func loadPrivateKey(privateKeyPath string) (*rsa.PrivateKey, error) {
 			return nil, fmt.Errorf("unable to parse private key %q: %w", privateKeyPath, err)
 		}
 
-		rsaKey, ok := key.(*rsa.PrivateKey)
+		signer, ok := key.(crypto.Signer)
 		if !ok {
 			return nil, fmt.Errorf("unexpected private key type in %q: %T", privateKeyPath, key)
 		}
-		return rsaKey, nil
+		return signer, nil
 	}
 
 	return nil, nil
