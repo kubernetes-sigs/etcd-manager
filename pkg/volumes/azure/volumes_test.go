@@ -22,6 +22,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	compute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
+	"sigs.k8s.io/etcd-manager/pkg/volumes"
 )
 
 func TestIsDiskForCluster(t *testing.T) {
@@ -185,6 +186,94 @@ func TestFindAvailableLun(t *testing.T) {
 			}
 			if actual != tc.lun {
 				t.Errorf("expected %d, but got %d", tc.lun, actual)
+			}
+		})
+	}
+}
+
+func TestAttachVolume(t *testing.T) {
+	const (
+		diskName = "etcd-1.etcd-main.cluster"
+		diskID   = "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/disks/etcd-1.etcd-main.cluster"
+	)
+
+	testCases := []struct {
+		name      string
+		dataDisks []*compute.DataDisk
+		lun       int32
+	}{
+		{
+			name: "no data disks",
+			lun:  0,
+		},
+		{
+			name: "existing data disk",
+			dataDisks: []*compute.DataDisk{
+				{
+					Lun:          to.Ptr(int32(0)),
+					Name:         to.Ptr("etcd-1.etcd-events.cluster"),
+					CreateOption: to.Ptr(compute.DiskCreateOptionTypesAttach),
+					Caching:      to.Ptr(compute.CachingTypesNone),
+					ManagedDisk: &compute.ManagedDiskParameters{
+						ID:                 to.Ptr("/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/disks/etcd-1.etcd-events.cluster"),
+						StorageAccountType: to.Ptr(compute.StorageAccountTypes("PremiumV2_LRS")),
+					},
+				},
+			},
+			lun: 1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := newMockClient()
+			client.vms[client.vmScaleSetInstanceID()] = &compute.VirtualMachineScaleSetVM{
+				Properties: &compute.VirtualMachineScaleSetVMProperties{
+					StorageProfile: &compute.StorageProfile{
+						DataDisks: tc.dataDisks,
+					},
+				},
+			}
+			a, err := newAzureVolumes("cluster", []string{}, "nameTag", client)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+
+			// After the VM update, AttachVolume resolves the LUN through the host's /dev/disk/azure
+			// symlinks, which do not exist where the tests run, so its error is ignored.
+			_ = a.AttachVolume(&volumes.Volume{
+				ProviderID: diskID,
+				Info:       volumes.VolumeInfo{Description: diskName},
+			})
+
+			dataDisks := client.vms[client.vmScaleSetInstanceID()].Properties.StorageProfile.DataDisks
+			if len(dataDisks) != len(tc.dataDisks)+1 {
+				t.Fatalf("expected %d data disks, but got %d", len(tc.dataDisks)+1, len(dataDisks))
+			}
+			for i, d := range tc.dataDisks {
+				if dataDisks[i] != d {
+					t.Errorf("data disk %d was replaced", i)
+				}
+			}
+
+			d := dataDisks[len(dataDisks)-1]
+			if d.Lun == nil || *d.Lun != tc.lun {
+				t.Errorf("expected lun %d, but got %v", tc.lun, d.Lun)
+			}
+			if d.Name == nil || *d.Name != diskName {
+				t.Errorf("expected name %q, but got %v", diskName, d.Name)
+			}
+			if d.CreateOption == nil || *d.CreateOption != compute.DiskCreateOptionTypesAttach {
+				t.Errorf("expected create option %q, but got %v", compute.DiskCreateOptionTypesAttach, d.CreateOption)
+			}
+			if d.Caching == nil || *d.Caching != compute.CachingTypesNone {
+				t.Errorf("expected caching %q, but got %v", compute.CachingTypesNone, d.Caching)
+			}
+			if d.ManagedDisk == nil || d.ManagedDisk.ID == nil || *d.ManagedDisk.ID != diskID {
+				t.Fatalf("expected managed disk %q, but got %+v", diskID, d.ManagedDisk)
+			}
+			if d.ManagedDisk.StorageAccountType != nil {
+				t.Errorf("expected no storage account type, but got %q", *d.ManagedDisk.StorageAccountType)
 			}
 		})
 	}
