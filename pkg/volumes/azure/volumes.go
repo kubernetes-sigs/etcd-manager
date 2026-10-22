@@ -231,9 +231,12 @@ func (a *AzureVolumes) AttachVolume(volume *volumes.Volume) error {
 			// This is a hack to get a disk name from the description.
 			Name:         to.Ptr(volume.Info.Description),
 			CreateOption: to.Ptr(compute.DiskCreateOptionTypesAttach),
+			// Premium SSD v2 does not support host caching; etcd's write-heavy WAL does not benefit from it.
+			Caching: to.Ptr(compute.CachingTypesNone),
+			// StorageAccountType is unset so Azure keeps the disk's own type: with any other type, Azure
+			// rejects the attach for PremiumV2_LRS disks and converts Premium_LRS disks to that type.
 			ManagedDisk: &compute.ManagedDiskParameters{
-				StorageAccountType: to.Ptr(compute.StorageAccountTypesStandardSSDLRS),
-				ID:                 to.Ptr(volume.ProviderID),
+				ID: to.Ptr(volume.ProviderID),
 			},
 		}
 		dds := append(vm.Properties.StorageProfile.DataDisks, d)
