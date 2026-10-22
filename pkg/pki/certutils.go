@@ -18,6 +18,8 @@ package pki
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	cryptorand "crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -33,9 +35,6 @@ import (
 const (
 	// CertificateBlockType is a possible value for pem.Block.Type.
 	CertificateBlockType = "CERTIFICATE"
-
-	// RSAPrivateKeyBlockType is a possible value for pem.Block.Type.
-	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
 )
 
 var rsaKeySize = 4096
@@ -45,9 +44,14 @@ func SetRSAKeySize(size int) {
 	rsaKeySize = size
 }
 
-// newPrivateKey creates an RSA private key
-func newPrivateKey() (*rsa.PrivateKey, error) {
+// newCAPrivateKey creates an RSA private key, used for CAs
+func newCAPrivateKey() (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(cryptorand.Reader, rsaKeySize)
+}
+
+// newLeafPrivateKey creates an ECDSA P-256 private key, used for leaf certificates
+func newLeafPrivateKey() (*ecdsa.PrivateKey, error) {
+	return ecdsa.GenerateKey(elliptic.P256(), cryptorand.Reader)
 }
 
 // newSignedCert creates a signed certificate using the given CA.
@@ -65,6 +69,12 @@ func newSignedCert(cfg *certutil.Config, key crypto.Signer, ca *CA, duration tim
 		return nil, fmt.Errorf("must specify at least one ExtKeyUsage")
 	}
 
+	keyUsage := x509.KeyUsageDigitalSignature
+	if _, isRSA := key.Public().(*rsa.PublicKey); isRSA {
+		// KeyEncipherment is only meaningful for RSA key transport
+		keyUsage |= x509.KeyUsageKeyEncipherment
+	}
+
 	certTmpl := x509.Certificate{
 		Subject: pkix.Name{
 			CommonName:   cfg.CommonName,
@@ -75,7 +85,7 @@ func newSignedCert(cfg *certutil.Config, key crypto.Signer, ca *CA, duration tim
 		SerialNumber: serial,
 		NotBefore:    caCert.NotBefore,
 		NotAfter:     time.Now().Add(duration).UTC(),
-		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		KeyUsage:     keyUsage,
 		ExtKeyUsage:  cfg.Usages,
 	}
 	certDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &certTmpl, caCert, key.Public(), caKey)

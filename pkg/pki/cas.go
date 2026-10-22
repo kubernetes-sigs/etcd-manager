@@ -17,13 +17,13 @@ limitations under the License.
 package pki
 
 import (
-	"crypto/rsa"
+	"crypto"
 	"crypto/x509"
 )
 
 type CA struct {
 	primaryCertificate *x509.Certificate
-	privateKey         *rsa.PrivateKey
+	privateKey         crypto.Signer
 	certificates       []*x509.Certificate
 }
 

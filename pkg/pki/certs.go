@@ -17,7 +17,9 @@ limitations under the License.
 package pki
 
 import (
-	"crypto/rsa"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/x509"
 	"fmt"
 	"os"
@@ -88,7 +90,7 @@ func init() {
 
 type Keypair struct {
 	Certificate *x509.Certificate
-	PrivateKey  *rsa.PrivateKey
+	PrivateKey  crypto.Signer
 }
 
 type MutableKeypair interface {
@@ -101,7 +103,7 @@ func NewCA(s Store) (*CA, error) {
 	p := config.CommonName
 
 	mutator := func(keypair *Keypair) error {
-		privateKey, err := newPrivateKey()
+		privateKey, err := newCAPrivateKey()
 		if err != nil {
 			return fmt.Errorf("unable to create private key %q: %w", p, err)
 		}
@@ -134,8 +136,12 @@ func ensureKeypair(store MutableKeypair, config certutil.Config, signer *CA) (*K
 	p := config.CommonName
 
 	mutator := func(keypair *Keypair) error {
-		if keypair.PrivateKey == nil {
-			privateKey, err := newPrivateKey()
+		if ecdsaKey, ok := keypair.PrivateKey.(*ecdsa.PrivateKey); !ok || ecdsaKey.Curve != elliptic.P256() {
+			if keypair.PrivateKey != nil {
+				klog.Infof("existing private key for %q is not ECDSA P-256; will regenerate", p)
+				keypair.Certificate = nil
+			}
+			privateKey, err := newLeafPrivateKey()
 			if err != nil {
 				return fmt.Errorf("unable to create private key %q: %w", p, err)
 			}
