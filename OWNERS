@@ -5,7 +5,9 @@
 # https://github.com/kubernetes/test-infra/blob/master/config/testgrids/kubernetes/kops/OWNERS
 
 approvers:
-- hakman
-- justinsb
-- rifelpet
+- sig-cluster-lifecycle-leads
+- etcd-manager-approvers
+reviewers:
+- etcd-manager-approvers
+- etcd-manager-reviewers
 
